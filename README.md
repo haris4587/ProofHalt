@@ -1,96 +1,89 @@
 # ProofHalt
 
-<p align="center">
-  <img src="site/assets/proofhalt-logo-1024.png" alt="ProofHalt shield mark" width="180" />
-</p>
+**Consensus before intervention. Proof before recovery.**
 
-<p align="center"><strong>Consensus before intervention. Proof before recovery.</strong></p>
+ProofHalt is an evidence-bound emergency governor for autonomous protocols. GenLayer validators independently inspect constitution-approved evidence, reach consensus on a narrow HALT or RESTORE decision, and bind the result to the exact incident, revision, evidence set and enforcement action.
 
-ProofHalt is an evidence-bound emergency governor for autonomous protocols. GenLayer validators independently retrieve constitution-approved incident evidence, agree on a narrow HALT or RESTORE verdict, and bind that decision to the exact evidence, reasoning, revision, and EVM action.
+[Live demo](https://proofhalt.netlify.app) · [GenLayer contract](https://explorer-studio.genlayer.com/address/0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767) · [Deployment transaction](https://explorer-studio.genlayer.com/tx/0x1e4d126a9f8880f259a7e6eb983b7a949110d7e18631b691f0abf9e54fee53d7)
 
-**[Launch the interactive demo](https://proofhalt.netlify.app)** · **[Inspect the finalized GenLayer contract](https://explorer-studio.genlayer.com/address/0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767)**
+## What makes ProofHalt different
 
-## Why it exists
+- **No reporter-selected source policy.** Protocol evidence rules are frozen in a versioned constitution.
+- **Independent validator retrieval.** Evidence is fetched inside GenLayer nondeterministic execution and validators independently reassess it.
+- **Hash-bound evidence.** Changed page contents cannot silently replace the submitted evidence artifact.
+- **Source-independence checks.** Mirrors of one origin cannot manufacture quorum.
+- **Fail-closed recovery.** RESTORE needs a later remediation decision, independent remediation evidence and target-side patch confirmation.
+- **Minimal EVM authority.** The Guardian can only pause/restore the bound target for a bound incident revision; it exposes no arbitrary-call surface.
+- **Overlap-safe incidents.** Restoring one incident cannot unpause a target while another incident is still active.
 
-Traditional emergency controls are either privileged human keys or deterministic circuit breakers. The first can be slow or captured; the second cannot judge ambiguous, offchain evidence. ProofHalt makes intervention auditable and narrowly scoped:
-
-- Evidence sources are frozen by a protocol constitution, not chosen by a reporter or model.
-- Validators fetch both the live origin and an immutable snapshot independently.
-- Independent origin identities prevent mirrors of one claim from inflating quorum.
-- A 32-byte decision commitment binds the incident, revision, evidence, reasoning, verdict, and action.
-- The EVM Guardian can only pause or restore, cannot rewrite a verdict, and composes overlapping incidents safely.
-- Restore requires a later remediation decision and a target-side permanent patch.
-
-## System
+## Architecture
 
 ```mermaid
-flowchart TD
-  A[Policy-bound evidence] --> B[GenLayer optimistic democracy]
-  B --> C[Finalized HALT or RESTORE commitment]
+flowchart LR
+  A[Constitution-approved evidence] --> B[GenLayer validator consensus]
+  B --> C[Evidence/verdict commitment]
   C --> D[ProofHaltGuardian]
-  D --> E[Protected EVM protocol]
-  E -->|new remediation evidence| A
+  D --> E[Protected EVM target]
+  E -->|remediation evidence| A
 ```
 
-| Layer | Responsibility | Failure boundary |
-|---|---|---|
-| `proofhalt.py` | Constitution, evidence intake, consensus adjudication, incident state | Fails closed on source, hash, schema, quorum, binding, or state mismatch |
-| `ProofHaltGuardian.sol` | Minimal cross-layer enforcement | Exact authority, target, revision, action, and 32-byte binding |
-| `DemoVault.sol` | Testnet-only exploit and one-way repair target | Cannot restore while the bounded demo exploit remains enabled |
-| Web app | Reviewer-facing incident-room simulation and release manifest | Makes no wallet or live-write claims |
-
-## Verified release
-
-| Surface | Result |
+| Layer | Responsibility |
 |---|---|
-| GenLayer semantic lint | PASS |
-| Python behavioral/model suites | 70 / 70 |
-| Solidity compile + Ganache chain-4221 lifecycle | 17 / 17 |
-| Aggregate executable contract tests | **87 / 87** |
-| Security source invariants | 50 / 50 |
-| Static site release checks | 18 / 18 |
-| Public intelligent contract | **FINALIZED** on GenLayer Studionet |
+| `contracts/proofhalt.py` | Constitution registry, evidence intake, consensus adjudication, append-only revisions, HALT/RESTORE authorization |
+| `contracts/ProofHaltGuardian.sol` | Minimal incident/revision-scoped enforcement bridge |
+| `contracts/DemoVault.sol` | Testnet-only protected target with a bounded demo exploit and one-way patch |
+| `site/` | Reviewer-facing incident-room demo and release manifest |
 
-Run the same gate locally:
+## Verification
+
+The recovered release bundle is reproducible from this repository:
+
+- Python/state-machine/model suites: **60/60 PASS**
+- Stage-9 static cross-layer audit snapshot: **36/36 PASS**
+- Additional repository security invariants: **50/50 PASS**
+- Static website release checks: **18/18 PASS**
+- Solidity compiler gate: configured for exact `solc 0.8.36` and run in GitHub Actions
+
+Run the local gate:
 
 ```bash
-npm ci
-python3 -m venv .venv
-.venv/bin/pip install genvm-linter==0.11.0 genlayer-test==0.29.2
 ./RUN_ALL_OFFLINE_CHECKS.sh
 ```
 
-The final line must be:
+Successful completion ends with:
 
 ```text
 PROOFHALT_RELEASE_GATE_PASS
 ```
 
-## Public deployment
+## Public release
 
 | Field | Value |
 |---|---|
-| Network | GenLayer Studionet (chain 61999) |
-| ProofHalt IC | [`0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767`](https://explorer-studio.genlayer.com/address/0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767) |
-| Deployment transaction | [`0x1e4d126a9f8880f259a7e6eb983b7a949110d7e18631b691f0abf9e54fee53d7`](https://explorer-studio.genlayer.com/tx/0x1e4d126a9f8880f259a7e6eb983b7a949110d7e18631b691f0abf9e54fee53d7) |
-| Explorer status | FINALIZED |
-| Website | [proofhalt.netlify.app](https://proofhalt.netlify.app) |
+| GenLayer network | Studionet / Studio explorer |
+| ProofHalt Intelligent Contract | `0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767` |
+| Deploy transaction | `0x1e4d126a9f8880f259a7e6eb983b7a949110d7e18631b691f0abf9e54fee53d7` |
+| Website | `https://proofhalt.netlify.app` |
+| Netlify production deploy | `6aa7d58fed7f8c1af2d0487c` |
+| Netlify deploy state | `ready` |
 
-The Solidity Guardian and DemoVault are compiled and exercised end-to-end on an ephemeral Ganache network configured with chain ID 4221. They are intentionally not labeled as public Bradbury deployments in this release because no funded public test wallet was used.
+The Solidity Guardian and DemoVault are included, compiled/audited through the release pipeline, and lifecycle-tested locally/model-side. This repository does **not** claim a funded public Bradbury/EVM deployment for those two contracts.
 
 ## Repository map
 
 ```text
-contracts/   GenLayer intelligent contract + Solidity enforcement pair
-tests/       Behavioral, adversarial, cross-layer, lifecycle, and EVM tests
-tools/       Security audit and site validation
-site/        Dependency-free Netlify application
-docs/        Architecture, threat model, deployment record, and submission copy
+contracts/   GenLayer intelligent contract + Solidity Guardian/Vault
+compiler/    pinned solc standard-json compiler gate
+tests/       behavioral, overlap, Guardian/Vault and demo lifecycle tests
+tools/       evidence helpers + security/site release checks
+site/        static Netlify demo source
+docs/        architecture, security, deployment and submission notes
+results/     preserved Stage-9 audit/test evidence
 ```
 
-Start with [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), then review [docs/SECURITY.md](docs/SECURITY.md) and [docs/E2E_DEPLOYMENT_RUNBOOK.md](docs/E2E_DEPLOYMENT_RUNBOOK.md).
+Start with `docs/ARCHITECTURE.md`, `docs/SECURITY.md`, and `docs/DEPLOYMENT.md`.
 
-> **Testnet-only warning:** `DemoVault.sol` deliberately contains a bounded exploit path for an honest incident-and-remediation demonstration. Never deploy it with valuable assets.
+> **Testnet-only warning:** `DemoVault.sol` deliberately contains a bounded exploit path so reviewers can see the halt/remediate/restore lifecycle. Never deploy it with valuable assets.
 
 ## License
 
