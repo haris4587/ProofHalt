@@ -2,7 +2,16 @@ import json, sys
 from pathlib import Path
 
 path=Path(sys.argv[1] if len(sys.argv)>1 else '/mnt/data/proofhalt_stage9/solc_output.json')
-data=json.loads(path.read_text())
+raw=path.read_text()
+start=raw.find('{')
+if start < 0:
+    print('COMPILE FAIL: solc output did not contain a JSON payload')
+    raise SystemExit(1)
+try:
+    data=json.loads(raw[start:])
+except json.JSONDecodeError as exc:
+    print(f'COMPILE FAIL: invalid solc JSON payload: {exc}')
+    raise SystemExit(1)
 messages=data.get('errors',[])
 errors=[m for m in messages if m.get('severity')=='error']
 warnings=[m for m in messages if m.get('severity')=='warning']
