@@ -1,0 +1,31 @@
+name: ProofHalt release gate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  offline-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run ProofHalt offline release gate
+        run: bash RUN_ALL_OFFLINE_CHECKS.sh
+
+  solidity-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile exact Solidity 0.8.36 standard-json
+        run: |
+          npx --yes solc@0.8.36 --standard-json < compiler/solc_standard_input.json > compiler/solc_output.json
+          python compiler/verify_solc_output.py compiler/solc_output.json
