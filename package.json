@@ -1,0 +1,18 @@
+{
+  "name": "proofhalt",
+  "version": "1.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm run build:sdk",
+    "build:sdk": "esbuild site/src/genlayer-client.js --bundle --format=esm --platform=browser --target=es2022 --minify --legal-comments=none --outfile=site/assets/genlayer-client.js",
+    "test:site": "python tools/site_checks.py",
+    "test": "npm run build && bash RUN_ALL_OFFLINE_CHECKS.sh"
+  },
+  "dependencies": {
+    "genlayer-js": "1.1.8"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

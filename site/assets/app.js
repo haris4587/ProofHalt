@@ -1,3 +1,5 @@
+import {readGlobalConstitution} from './genlayer-client.js';
+
 const CONTRACT_ADDRESS='0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767';
 const STUDIONET_CHAIN_ID=61999;
 const STUDIONET_CHAIN_HEX='0xF22F';
@@ -15,7 +17,6 @@ const steps=[
 
 let i=0;
 let connectedAddress='';
-let sdkPromise=null;
 
 const timeline=document.getElementById('timeline');
 const pill=document.getElementById('statusPill');
@@ -42,18 +43,12 @@ function normalizeContractValue(value){
   }
   return value;
 }
-async function loadGenLayerSdk(){
-  if(!sdkPromise){
-    sdkPromise=Promise.all([
-      import('https://esm.sh/genlayer-js@1.1.8'),
-      import('https://esm.sh/genlayer-js@1.1.8/chains')
-    ]).then(([sdk,chains])=>({createClient:sdk.createClient,studionet:chains.studionet}));
-  }
-  return sdkPromise;
-}
 async function ensureStudionet(provider){
+  const currentChainHex=await provider.request({method:'eth_chainId'});
+  if(parseInt(currentChainHex,16)===STUDIONET_CHAIN_ID)return;
   try{
     await provider.request({method:'wallet_switchEthereumChain',params:[{chainId:STUDIONET_CHAIN_HEX}]});
+    return;
   }catch(error){
     if(error&&Number(error.code)===4902){
       await provider.request({
@@ -66,6 +61,7 @@ async function ensureStudionet(provider){
           blockExplorerUrls:[EXPLORER]
         }]
       });
+      await provider.request({method:'wallet_switchEthereumChain',params:[{chainId:STUDIONET_CHAIN_HEX}]});
       return;
     }
     throw error;
@@ -88,13 +84,7 @@ async function verifyLiveContract(){
   constitutionStatus.textContent='Loading…';
   setMessage('Reading ProofHalt directly from GenLayer Studionet…');
   try{
-    const {createClient,studionet}=await loadGenLayerSdk();
-    const readClient=createClient({chain:studionet});
-    const raw=await readClient.readContract({
-      address:CONTRACT_ADDRESS,
-      functionName:'get_global_constitution',
-      args:[]
-    });
+    const raw=await readGlobalConstitution(CONTRACT_ADDRESS);
     const data=normalizeContractValue(raw);
     if(!data||typeof data!=='object')throw new Error('Unexpected contract response');
     const groups=Number(data.minimum_independent_groups ?? 0);
@@ -113,7 +103,7 @@ async function verifyLiveContract(){
     const detail=error instanceof Error?error.message:'Unknown error';
     setMessage(`Could not read the live GenLayer contract: ${detail}`,'error');
   }finally{
-    verifyContractBtn.disabled=!connectedAddress;
+    verifyContractBtn.disabled=false;
   }
 }
 async function connectWallet(){
@@ -132,9 +122,6 @@ async function connectWallet(){
     if(!Array.isArray(accounts)||!accounts[0])throw new Error('No wallet account was selected');
     connectedAddress=accounts[0];
     await ensureStudionet(provider);
-    const {createClient,studionet}=await loadGenLayerSdk();
-    const walletClient=createClient({chain:studionet,account:connectedAddress,provider});
-    await walletClient.connect('studionet');
     walletStatus.textContent=shortAddress(connectedAddress);
     walletStatus.classList.add('ok');
     navWalletLabel.textContent=shortAddress(connectedAddress);
@@ -143,7 +130,7 @@ async function connectWallet(){
     walletBtn.classList.add('connected');
     verifyContractBtn.disabled=false;
     await refreshNetwork();
-    setMessage('MetaMask connected to GenLayer Studionet. Verifying the deployed ProofHalt contract now…','success');
+    setMessage('MetaMask connected to GenLayer Studionet. No signature, approval or transaction was requested.','success');
     await verifyLiveContract();
   }catch(error){
     connectedAddress='';
@@ -151,7 +138,8 @@ async function connectWallet(){
     walletStatus.classList.remove('ok');
     verifyContractBtn.disabled=true;
     const detail=error instanceof Error?error.message:'Wallet request failed';
-    setMessage(detail.toLowerCase().includes('user rejected')?'The MetaMask request was cancelled. Nothing was submitted.':`Wallet connection failed: ${detail}`,'error');
+    const rejected=Number(error?.code)===4001||detail.toLowerCase().includes('user rejected');
+    setMessage(rejected?'The MetaMask request was cancelled. Nothing was signed or submitted.':`Wallet connection failed: ${detail}`,'error');
   }finally{
     walletBtn.disabled=false;
     navWalletBtn.disabled=false;
@@ -165,12 +153,8 @@ function disconnectUi(){
   navWalletBtn.classList.remove('connected');
   walletBtn.textContent='Connect MetaMask';
   walletBtn.classList.remove('connected');
-  verifyContractBtn.disabled=true;
-  contractStatus.textContent='Awaiting verification';
-  contractStatus.classList.remove('ok');
-  constitutionStatus.textContent='Not loaded';
-  constitutionStatus.classList.remove('ok');
-  setMessage('Wallet disconnected. Reconnect MetaMask to verify the live ProofHalt deployment.');
+  verifyContractBtn.disabled=false;
+  setMessage('Wallet disconnected. The live contract read remains available without a wallet.');
 }
 function render(){
   if(i===0){
@@ -203,3 +187,4 @@ if(window.ethereum){
 
 render();
 refreshNetwork();
+verifyLiveContract();

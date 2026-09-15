@@ -20,6 +20,10 @@ The GenLayer prompts explicitly classify evidence content as untrusted data. Ins
 
 `DemoVault.sol` is deliberately testnet-only. Its bounded exploit exists solely for the demonstration. The exploit is disabled while paused, the remediation patch is one-way, and final restore is refused until the patch is applied.
 
+## Reviewer wallet surface
+
+The website's live `get_global_constitution` verification is public and requires no wallet. The pinned `genlayer-js` dependency is bundled locally at build time, so the page does not execute code from a third-party module CDN. Optional MetaMask connection is restricted to `eth_requestAccounts`, `eth_chainId`, `wallet_addEthereumChain` and `wallet_switchEthereumChain`. The application contains no signature, approval, transaction, write-contract or Snap request.
+
 ## Non-claims
 
 The public GenLayer Intelligent Contract and Netlify demo are part of the release. The repository does not claim that the Guardian/DemoVault pair is funded or publicly deployed on Bradbury/EVM. Their source is compiler-gated and lifecycle-tested separately.

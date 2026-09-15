@@ -17,10 +17,12 @@ Explorer links:
 - Site: `proofhalt`
 - Site ID: `e6791f4a-0842-4e5c-905a-a39e53de9261`
 - Production URL: https://proofhalt.netlify.app
-- Production deploy ID: `6aa7d58fed7f8c1af2d0487c`
-- Deploy state: `ready`
-- Published: 2026-09-14T11:08:15.709Z
-- Deploy source: API upload
+- Production branch: `main`
+- Build command: `npm run build`
+- Publish directory: `site`
+
+The stable production URL resolves to the latest ready deploy recorded in the
+Netlify dashboard; deploy-specific IDs are intentionally not pinned here.
 
 ## EVM Guardian/Vault
 

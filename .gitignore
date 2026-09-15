@@ -2,5 +2,6 @@
 __pycache__/
 *.pyc
 node_modules/
+site/assets/genlayer-client.js
 compiler/solc_output.json
 .DS_Store

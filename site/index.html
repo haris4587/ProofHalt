@@ -23,7 +23,7 @@
   <h1>Consensus before intervention.<br><span>Proof before recovery.</span></h1>
   <p class="lede">Independent validators verify constitution-approved evidence before a protocol can halt or recover. Every decision is bound to an incident, evidence set, revision and narrow enforcement action.</p>
   <div class="actions"><a class="button" href="#demo">Open reviewer console</a><a class="button ghost" href="https://explorer-studio.genlayer.com/address/0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767" rel="noreferrer">View finalized contract ↗</a></div>
-  <div class="metrics"><div><b>60/60</b><span>behavioral/model checks</span></div><div><b>50/50</b><span>security invariants</span></div><div><b>18/18</b><span>site checks</span></div><div><b>FINALIZED</b><span>GenLayer release record</span></div></div>
+  <div class="metrics"><div><b>60/60</b><span>behavioral/model checks</span></div><div><b>50/50</b><span>security invariants</span></div><div><b>22/22</b><span>site checks</span></div><div><b>FINALIZED</b><span>GenLayer release record</span></div></div>
 </section>
 <section id="architecture" class="shell grid3">
   <article><p class="num">01</p><h2>Constitution</h2><p>Targets, evidence thresholds, exclusions and recovery rules are frozen before an incident.</p></article>
@@ -34,20 +34,20 @@
   <div class="wallet-panel">
     <div class="wallet-copy">
       <p class="eyebrow">LIVE REVIEWER SESSION</p>
-      <h2>Connect MetaMask to GenLayer Studionet</h2>
-      <p>Connect an EIP-1193 wallet, switch it to Studionet, and read ProofHalt's finalized global constitution directly from the deployed Intelligent Contract.</p>
+      <h2>Verify ProofHalt on GenLayer Studionet</h2>
+      <p>Read ProofHalt's finalized global constitution without connecting a wallet. MetaMask is optional and is used only to show account access and the Studionet network.</p>
     </div>
     <div class="wallet-actions">
-      <button id="walletBtn" class="button" type="button">Connect MetaMask</button>
-      <button id="verifyContractBtn" class="button ghost" type="button" disabled>Verify live contract</button>
+      <button id="verifyContractBtn" class="button" type="button">Verify live contract · no wallet</button>
+      <button id="walletBtn" class="button ghost" type="button">Connect MetaMask (optional)</button>
     </div>
     <div class="wallet-status-grid" aria-live="polite">
-      <div><span>Wallet</span><strong id="walletStatus">Not connected</strong></div>
-      <div><span>Network</span><strong id="networkStatus">Studionet · chain 61999</strong></div>
-      <div><span>Contract</span><strong id="contractStatus">Awaiting verification</strong></div>
-      <div><span>Safety floor</span><strong id="constitutionStatus">Not loaded</strong></div>
+      <div><span>Wallet</span><strong id="walletStatus">Optional · not connected</strong></div>
+      <div><span>Network</span><strong id="networkStatus">Target · Studionet 61999</strong></div>
+      <div><span>Contract</span><strong id="contractStatus">Checking live state…</strong></div>
+      <div><span>Safety floor</span><strong id="constitutionStatus">Loading…</strong></div>
     </div>
-    <p id="walletMessage" class="wallet-message">MetaMask is used only for the reviewer session and network connection. The lifecycle walkthrough below remains a staged simulation of the external Guardian path.</p>
+    <p id="walletMessage" class="wallet-message">No wallet is required for verification. ProofHalt never requests a signature, token approval, transaction, or Snap installation. The lifecycle below remains a staged simulation of the external Guardian path.</p>
   </div>
 
   <div class="demo">

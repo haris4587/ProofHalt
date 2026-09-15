@@ -32,7 +32,7 @@ flowchart LR
 | `contracts/proofhalt.py` | Constitution registry, evidence intake, consensus adjudication, append-only revisions, HALT/RESTORE authorization |
 | `contracts/ProofHaltGuardian.sol` | Minimal incident/revision-scoped enforcement bridge |
 | `contracts/DemoVault.sol` | Testnet-only protected target with a bounded demo exploit and one-way patch |
-| `site/` | Reviewer-facing incident-room demo and release manifest |
+| `site/` | Reviewer-facing read-only deployment verifier, incident-room demo and release manifest |
 
 ## Verification
 
@@ -41,13 +41,16 @@ The recovered release bundle is reproducible from this repository:
 - Python/state-machine/model suites: **60/60 PASS**
 - Stage-9 static cross-layer audit snapshot: **36/36 PASS**
 - Additional repository security invariants: **50/50 PASS**
-- Static website release checks: **18/18 PASS**
+- Static website release checks: **22/22 PASS**
 - Solidity compiler gate: configured for exact `solc 0.8.36` and run in GitHub Actions
+
+The browser SDK is pinned to `genlayer-js` 1.1.8 and bundled locally during the build. The live constitution read requires no wallet. Optional MetaMask connection requests only account access and a switch/add to Studionet; ProofHalt does not request signatures, approvals, transactions or Snap installation.
 
 Run the local gate:
 
 ```bash
-./RUN_ALL_OFFLINE_CHECKS.sh
+npm ci
+npm test
 ```
 
 Successful completion ends with:
@@ -64,8 +67,8 @@ PROOFHALT_RELEASE_GATE_PASS
 | ProofHalt Intelligent Contract | `0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767` |
 | Deploy transaction | `0x1e4d126a9f8880f259a7e6eb983b7a949110d7e18631b691f0abf9e54fee53d7` |
 | Website | `https://proofhalt.netlify.app` |
-| Netlify production deploy | `6aa7d58fed7f8c1af2d0487c` |
-| Netlify deploy state | `ready` |
+| Netlify production site | `proofhalt` (`e6791f4a-0842-4e5c-905a-a39e53de9261`) |
+| Netlify production URL | `https://proofhalt.netlify.app` |
 
 The Solidity Guardian and DemoVault are included, compiled/audited through the release pipeline, and lifecycle-tested locally/model-side. This repository does **not** claim a funded public Bradbury/EVM deployment for those two contracts.
 
