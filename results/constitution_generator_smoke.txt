@@ -1,0 +1,4 @@
+file=/mnt/data/proofhalt_stage9/_constitution_smoke.json
+sha256=3803d728fd5b4c72c4428ae351a911ac9ea06e56fee38ba21892ecd48cc71959
+protocol_id=proofhalt-demovault-v1
+target=0x2222222222222222222222222222222222222222

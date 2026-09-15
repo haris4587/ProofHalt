@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+compiler/solc_output.json
+.DS_Store

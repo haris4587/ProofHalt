@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="ProofHalt — evidence-bound emergency governance for autonomous protocols on GenLayer.">
+<title>ProofHalt — Consensus before intervention</title>
+<link rel="icon" href="assets/proofhalt-logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="nav shell">
+  <a class="brand" href="#top"><img src="assets/proofhalt-logo.svg" alt=""><span>ProofHalt</span></a>
+  <nav><a href="#architecture">Architecture</a><a href="#demo">Demo</a><a href="#verification">Verification</a></nav>
+  <a class="button ghost" href="https://github.com/haris4587/ProofHalt" rel="noreferrer">GitHub ↗</a>
+</header>
+<main id="top">
+<section class="hero shell">
+  <p class="eyebrow">GENLAYER · EVIDENCE-BOUND SECURITY GOVERNANCE</p>
+  <h1>Consensus before intervention.<br><span>Proof before recovery.</span></h1>
+  <p class="lede">Independent validators verify constitution-approved evidence before a protocol can halt or recover. Every decision is bound to an incident, evidence set, revision and narrow enforcement action.</p>
+  <div class="actions"><a class="button" href="#demo">Run incident demo</a><a class="button ghost" href="https://explorer-studio.genlayer.com/address/0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767" rel="noreferrer">View finalized contract ↗</a></div>
+  <div class="metrics"><div><b>60/60</b><span>behavioral/model checks</span></div><div><b>50/50</b><span>security invariants</span></div><div><b>18/18</b><span>site checks</span></div><div><b>FINALIZED</b><span>GenLayer release record</span></div></div>
+</section>
+<section id="architecture" class="shell grid3">
+  <article><p class="num">01</p><h2>Constitution</h2><p>Targets, evidence thresholds, exclusions and recovery rules are frozen before an incident.</p></article>
+  <article><p class="num">02</p><h2>Consensus</h2><p>Validators independently fetch hash-bound evidence and reassess the same narrow schema.</p></article>
+  <article><p class="num">03</p><h2>Enforcement</h2><p>The Guardian can only execute the finalized HALT/RESTORE action for the bound incident revision.</p></article>
+</section>
+<section id="demo" class="demo shell">
+  <div class="copy"><p class="eyebrow">REVIEWER DEMO</p><h2>Walk the full incident lifecycle</h2><p>The simulation shows how a credible exploit is corroborated, halted, patched and restored. It never represents a live wallet transaction.</p><ul><li>Two independent evidence origins</li><li>Technical anchor required</li><li>Changed-page hash mismatch fails closed</li><li>Recovery uses separate remediation evidence</li></ul></div>
+  <div class="terminal" aria-live="polite">
+    <div class="terminal-head"><span>INCIDENT PH-DEMO-001</span><span id="statusPill">READY</span></div>
+    <div class="timeline" id="timeline"></div>
+    <button id="advanceBtn" class="button wide">Begin evidence scan</button>
+    <button id="resetBtn" class="reset">Reset demo</button>
+  </div>
+</section>
+<section id="verification" class="shell verification">
+  <p class="eyebrow">RELEASE MANIFEST</p><h2>Auditable by construction</h2>
+  <div class="manifest"><div><span>GenLayer contract</span><code>0x9E43…6767</code></div><div><span>Deployment tx</span><code>0x1e4d…53d7</code></div><div><span>Netlify deploy</span><code>6aa7d58f…487c</code></div><div><span>Guardian authority</span><code>narrow / incident scoped</code></div></div>
+  <p class="fine">The Solidity Guardian/DemoVault are compiler-gated and lifecycle-tested, but this release does not claim a funded public Bradbury deployment for them.</p>
+</section>
+</main>
+<footer class="shell"><span>ProofHalt · GenLayer hackathon release</span><a href="https://github.com/haris4587/ProofHalt">Source & evidence</a></footer>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

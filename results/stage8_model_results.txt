@@ -1,0 +1,22 @@
+PASS 21/21
+PASS 01 guardian ABI matches proofhalt.py
+PASS 02 no dangerous generic execution surface
+PASS 03 target has no force-unpause admin
+PASS 04 unbound guardian rejected
+PASS 05 unauthorized halt rejected
+PASS 06 first halt pauses target
+PASS 07 exact halt replay is idempotent
+PASS 08 conflicting equal revision rejected
+PASS 09 stale revision rejected
+PASS 10 higher halt revision does not double-count incident
+PASS 11 second incident increments active set
+PASS 12 restoring one of two incidents keeps target paused
+PASS 13 restored incident cannot be re-halted
+PASS 14 final active restore unpauses target
+PASS 15 exact restore replay harmless
+PASS 16 restore without active halt rejected
+PASS 17 normal withdraw works before halt
+PASS 18 deposit blocked while paused
+PASS 19 withdraw blocked while paused
+PASS 20 withdraw works after finalized restore path
+PASS 21 inconsistent target state fails closed

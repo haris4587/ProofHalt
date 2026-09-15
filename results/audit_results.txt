@@ -1,0 +1,41 @@
+PASS 01 Solidity pins latest audited compiler 0.8.36 
+PASS 02 Guardian delimiters balanced 
+PASS 03 DemoVault delimiters balanced 
+PASS 04 No dangerous delegatecall/callcode/selfdestruct/tx.origin/assembly in Guardian 
+PASS 05 No dangerous delegatecall/callcode/selfdestruct/tx.origin/assembly in Vault 
+PASS 06 Guardian authority immutable 
+PASS 07 Guardian target immutable 
+PASS 08 Guardian rejects non-contract target 
+PASS 09 HALT/RESTORE protected by onlyProofHalt 
+PASS 10 Guardian has no arbitrary external execution surface 
+PASS 11 Guardian tracks active incident set 
+PASS 12 Guardian exposes incident-specific confirmation views 
+PASS 13 Guardian replay protection is revision+action scoped 
+PASS 14 Guardian rejects stale/equal conflicting revisions 
+PASS 15 Guardian prevents restored incident re-halt 
+PASS 16 Guardian verifies target binding 
+PASS 17 Guardian verifies global pause/count invariant 
+PASS 18 Guardian checks activeHaltCount invariant before decrement 
+PASS 19 Partial restore explicitly preserves target pause 
+PASS 20 Vault has one-time configuration authority 
+PASS 21 Vault requires Guardian contract code 
+PASS 22 Vault verifies Guardian target 
+PASS 23 Vault pause/restore are onlyGuardian 
+PASS 24 Vault has no owner/admin force-unpause path 
+PASS 25 Vault blocks deposits and withdrawals while paused 
+PASS 26 Vault withdrawal uses reentrancy guard 
+PASS 27 Vault withdrawal follows checks-effects-interactions 
+PASS 28 Vault uses checked subtraction (no unchecked block) 
+PASS 29 Intentional demo exploit is clearly bounded and pause-gated 
+PASS 30 Demo patch is one-way and requires paused state 
+PASS 31 Final DemoVault restore requires demo patch 
+PASS 32 Python Guardian ABI includes incident-specific views 
+PASS 33 Python HALT confirmation is incident-specific 
+PASS 34 Python RESTORE supports overlapping active incidents safely 
+PASS 35 Python close is incident-scoped, not global-unpause scoped 
+PASS 36 No ProofHalt force/admin action methods introduced 
+
+SUMMARY 36/36 PASS
+ProofHaltGuardian.sol sha256=e1a66b5ffcc2ea44a4e2d7d8bb02cd69b3ea74af4f42e3a708ccde19a357d382 bytes=10586 lines=294
+DemoVault.sol sha256=03a87b1f65265efdf23251fbc62734df0d0b2862513f052991501dd459fc3e13 bytes=7691 lines=220
+proofhalt.py sha256=91628f219e0230434417228c45a1e241e4bfb3bb8caded2486708709bc804c90 bytes=93255 lines=2225
