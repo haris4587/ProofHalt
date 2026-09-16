@@ -117,6 +117,7 @@ class FakeGuardianInstance:
     active_halts=0
     incident_active={}
     incident_restored={}
+    incident_binding={}
     def __init__(self,address): self.address=address
     def view(self): return self
     def emit(self): return self
@@ -126,17 +127,20 @@ class FakeGuardianInstance:
     def activeHaltCount(self): return u256(type(self).active_halts)
     def isIncidentActive(self, incidentId): return bool(type(self).incident_active.get(incidentId, False))
     def isIncidentRestored(self, incidentId): return bool(type(self).incident_restored.get(incidentId, False))
-    def pauseFromProofHalt(self, incidentId, revision):
+    def incidentDecisionBinding(self, incidentId): return type(self).incident_binding.get(incidentId, b'')
+    def pauseFromProofHalt(self, incidentId, revision, decisionBinding):
         if not type(self).incident_active.get(incidentId, False):
             type(self).incident_active[incidentId]=True
             type(self).active_halts += 1
         type(self).incident_restored[incidentId]=False
+        type(self).incident_binding[incidentId]=decisionBinding
         type(self).paused=True
-    def restoreFromProofHalt(self, incidentId, revision):
+    def restoreFromProofHalt(self, incidentId, revision, decisionBinding):
         if type(self).incident_active.get(incidentId, False):
             type(self).incident_active[incidentId]=False
             type(self).incident_restored[incidentId]=True
             type(self).active_halts -= 1
+        type(self).incident_binding[incidentId]=decisionBinding
         type(self).paused = type(self).active_halts > 0
 
 def canonical_hash(obj):
@@ -158,6 +162,12 @@ def constitution(pid='demovault-v1', min_groups=2, anchor=True, target=TARGET):
       'requires_technical_anchor':anchor,
       'critical_loss_bps':500,
       'review_period_seconds':3600,
+      'evidence_sources':[
+        {'origin_id':'origin-a','exact_host':'source-a.example','path_prefix':'/reports/','source_type':ph.SOURCE_ONCHAIN_TECHNICAL,'technical_anchor':True},
+        {'origin_id':'origin-b','exact_host':'source-b.example','path_prefix':'/reports/','source_type':ph.SOURCE_SECURITY_RESEARCH,'technical_anchor':False},
+        {'origin_id':'origin-c','exact_host':'source-c.example','path_prefix':'/reports/','source_type':ph.SOURCE_INDEPENDENT_REPORTING,'technical_anchor':False},
+      ],
+      'snapshot_hosts':['snapshots.example'],
     }
     return canonical_hash(obj)
 
@@ -169,11 +179,18 @@ def incident_assessment(**kw):
       'independent_source_groups':2,'strong_anchor_present':True,
       'fetched_relevant_evidence_count':2,'hash_verified_relevant_evidence_count':2,
       'technical_anchor_evidence_id':'PH-000001-E001',
+      'verified_evidence_ids':['PH-000001-E001','PH-000001-E002'],
+      'verified_origin_ids':['origin-a','origin-b'],
       'finding':ph.FINDING_ACTIVE_CRITICAL_EXPLOIT,'severity':ph.SEVERITY_CRITICAL,
       'confidence':95,'recommended_action':ph.ACTION_HALT,
       'public_rationale':'Two independent hash-verified technical sources confirm the exploit.'
     }
-    d.update(kw); return d
+    d.update(kw)
+    if 'verified_evidence_ids' not in kw:
+        d['verified_evidence_ids']=[f'PH-000001-E{x:03d}' for x in range(1,d['hash_verified_relevant_evidence_count']+1)]
+    if 'verified_origin_ids' not in kw:
+        d['verified_origin_ids']=[f'origin-{chr(97+x)}' for x in range(d['independent_source_groups'])]
+    return d
 
 def remediation_assessment(**kw):
     d={
@@ -181,13 +198,20 @@ def remediation_assessment(**kw):
       'independent_source_groups':2,'strong_anchor_present':True,
       'fetched_relevant_evidence_count':2,'hash_verified_relevant_evidence_count':2,
       'technical_anchor_evidence_id':'PH-000001-E003',
+      'verified_evidence_ids':['PH-000001-E003','PH-000001-E004'],
+      'verified_origin_ids':['origin-a','origin-b'],
       'remediation_exists':True,'addresses_original_exploit':True,'technical_fix_supported':True,
       'exploit_no_longer_active':True,'no_continued_unauthorized_loss':True,
       'finding':ph.FINDING_REMEDIATED,'severity':ph.SEVERITY_INFORMATIONAL,
       'confidence':94,'recommended_action':ph.ACTION_RESTORE,
       'public_rationale':'Two independent hash-verified remediation artifacts support recovery.'
     }
-    d.update(kw); return d
+    d.update(kw)
+    if 'verified_evidence_ids' not in kw:
+        d['verified_evidence_ids']=[f'PH-000001-E{x:03d}' for x in range(3,3+d['hash_verified_relevant_evidence_count'])]
+    if 'verified_origin_ids' not in kw:
+        d['verified_origin_ids']=[f'origin-{chr(97+x)}' for x in range(d['independent_source_groups'])]
+    return d
 
 class ProofHaltTests(unittest.TestCase):
     def setUp(self):
@@ -197,6 +221,7 @@ class ProofHaltTests(unittest.TestCase):
         FakeGuardianInstance.active_halts=0
         FakeGuardianInstance.incident_active={}
         FakeGuardianInstance.incident_restored={}
+        FakeGuardianInstance.incident_binding={}
         ph.ProofHaltGuardianEVM=FakeGuardianInstance
         self.c=ph.ProofHalt('')
         self.clock=[1_800_000_000]
@@ -210,7 +235,9 @@ class ProofHaltTests(unittest.TestCase):
 
     def add(self,i,token,phase=ph.EVIDENCE_ORIGINAL):
         body=f'evidence-{token}'.encode(); h=hashlib.sha256(body).hexdigest()
-        return self.c.submit_evidence(i,f'https://evidence{token}.example/report','',h,ph.SOURCE_SECURITY_RESEARCH,phase,'')
+        origin='origin-a' if token in ('a','periodic') else 'origin-b'
+        host='source-a.example' if origin=='origin-a' else 'source-b.example'
+        return self.c.submit_evidence(i,origin,f'https://{host}/reports/{token}',f'https://snapshots.example/{token}.json',h,phase,'')
 
     def test_01_valid_constitution_registration_and_activation(self):
         pid=self.reg(); p=self.c.protocols[pid]
@@ -286,9 +313,9 @@ class ProofHaltTests(unittest.TestCase):
     def test_10_duplicate_evidence_rejected(self):
         self.reg(); i=self.c.open_incident('demovault-v1','Claim')
         body=b'same'; h=hashlib.sha256(body).hexdigest()
-        self.c.submit_evidence(i,'https://a.example/x','',h,ph.SOURCE_SECURITY_RESEARCH,ph.EVIDENCE_ORIGINAL,'')
+        self.c.submit_evidence(i,'origin-a','https://source-a.example/reports/x','https://snapshots.example/x.json',h,ph.EVIDENCE_ORIGINAL,'')
         with self.assertRaisesRegex(UserError,'PH_DUPLICATE_EVIDENCE'):
-            self.c.submit_evidence(i,'https://b.example/x','',h,ph.SOURCE_SECURITY_RESEARCH,ph.EVIDENCE_SUPPORTING,'')
+            self.c.submit_evidence(i,'origin-b','https://source-b.example/reports/x','https://snapshots.example/y.json',h,ph.EVIDENCE_SUPPORTING,'')
 
     def test_11_review_due_state_is_not_dead_end(self):
         self.reg(); i=self.c.open_incident('demovault-v1','Claim'); self.add(i,'a')
@@ -312,8 +339,8 @@ class ProofHaltTests(unittest.TestCase):
     def test_13_two_verified_remediation_sources_authorize_restore(self):
         self.reg(); i=self.c.open_incident('demovault-v1','Claim')
         inc=self.c.incidents[i]; inc.status=ph.u8(ph.INCIDENT_HALTED); inc.revision_count=ph.u32(1)
-        self.c.submit_remediation(i,'https://fix1.example/report','',hashlib.sha256(b'fix1').hexdigest(),ph.SOURCE_SECURITY_RESEARCH,'')
-        self.c.submit_remediation(i,'https://fix2.example/report','',hashlib.sha256(b'fix2').hexdigest(),ph.SOURCE_ONCHAIN_TECHNICAL,'')
+        self.c.submit_remediation(i,'origin-a','https://source-a.example/reports/fix1','https://snapshots.example/fix1.json',hashlib.sha256(b'fix1').hexdigest(),'')
+        self.c.submit_remediation(i,'origin-b','https://source-b.example/reports/fix2','https://snapshots.example/fix2.json',hashlib.sha256(b'fix2').hexdigest(),'')
         self.c._run_remediation_consensus=lambda *a,**k:remediation_assessment()
         emitted=[]; self.c._emit_restore=lambda p,i,r:emitted.append((i,r))
         self.c.adjudicate_remediation(i)
@@ -385,6 +412,8 @@ class ProofHaltTests(unittest.TestCase):
     def test_21_target_state_confirmation_distinguishes_authorized_and_executed(self):
         self.reg(); i=self.c.open_incident('demovault-v1','Claim'); inc=self.c.incidents[i]
         inc.status=ph.u8(ph.INCIDENT_HALT_AUTHORIZED)
+        inc.latest_revision_key=self.c._verdict_key(i,1)
+        self.c.verdicts[inc.latest_revision_key]=types.SimpleNamespace(decision_binding_hash='ab'*32)
         FakeGuardianInstance.paused=False
         with self.assertRaisesRegex(UserError,'PH_TARGET_STATE_MISMATCH'):
             self.c.confirm_target_state(i)
@@ -392,6 +421,7 @@ class ProofHaltTests(unittest.TestCase):
         FakeGuardianInstance.paused=True
         FakeGuardianInstance.active_halts=1
         FakeGuardianInstance.incident_active[i]=True
+        FakeGuardianInstance.incident_binding[i]=bytes.fromhex('ab'*32)
         self.c.confirm_target_state(i)
         self.assertEqual(int(inc.status),ph.INCIDENT_HALTED)
         inc.status=ph.u8(ph.INCIDENT_RESTORE_AUTHORIZED)
@@ -399,6 +429,7 @@ class ProofHaltTests(unittest.TestCase):
         FakeGuardianInstance.active_halts=0
         FakeGuardianInstance.incident_active[i]=False
         FakeGuardianInstance.incident_restored[i]=True
+        FakeGuardianInstance.incident_binding[i]=bytes.fromhex('ab'*32)
         self.c.confirm_target_state(i)
         self.assertEqual(int(inc.status),ph.INCIDENT_RESTORED)
 
@@ -418,10 +449,25 @@ class ProofHaltTests(unittest.TestCase):
         self.reg(); p=self.c.protocols['demovault-v1']; i=self.c.open_incident('demovault-v1','Claim')
         self.assertEqual(int(p.unresolved_incident_count),1)
         self.c.incidents[i].status=ph.u8(ph.INCIDENT_RESTORED)
+        self.c.incidents[i].latest_revision_key=self.c._verdict_key(i,1)
+        self.c.verdicts[self.c.incidents[i].latest_revision_key]=types.SimpleNamespace(decision_binding_hash='cd'*32)
         FakeGuardianInstance.incident_active[i]=False
         FakeGuardianInstance.incident_restored[i]=True
+        FakeGuardianInstance.incident_binding[i]=bytes.fromhex('cd'*32)
         self.c.close_incident(i)
         self.assertEqual(int(self.c.incidents[i].status),ph.INCIDENT_CLOSED)
         self.assertEqual(int(p.unresolved_incident_count),0)
+
+    def test_25_authorization_only_mode_never_claims_external_enforcement(self):
+        self.c=ph.ProofHalt('', True); self.c._now=lambda:self.clock[0]
+        text,h=constitution()
+        self.c.register_protocol('demovault-v1',TARGET,GUARDIAN,'',text,h,'')
+        self.c.activate_protocol('demovault-v1')
+        self.assertEqual(int(self.c.protocols['demovault-v1'].status),ph.PROTOCOL_PROTECTED)
+        self.assertEqual(self.c.get_global_constitution()['enforcement_mode'],'AUTHORIZATION_ONLY')
+        i=self.c.open_incident('demovault-v1','Claim')
+        self.c.incidents[i].status=ph.u8(ph.INCIDENT_HALT_AUTHORIZED)
+        with self.assertRaisesRegex(UserError,'PH_ENFORCEMENT_UNAVAILABLE'):
+            self.c.confirm_target_state(i)
 
 if __name__=='__main__': unittest.main(verbosity=2)

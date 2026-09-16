@@ -38,9 +38,9 @@ for source,name in required:
 
 expected_guardian={
  'proofHaltAuthority()','protectedTarget()','activeHaltCount()','isPaused()',
- 'isIncidentActive(string)','isIncidentRestored(string)',
- 'pauseFromProofHalt(string,uint32)','restoreFromProofHalt(string,uint32)',
- 'incidentState(string)','actionExecuted(string,uint32,bool)','incidentHashOf(string)'
+ 'isIncidentActive(string)','isIncidentRestored(string)','incidentDecisionBinding(string)',
+ 'pauseFromProofHalt(string,uint32,bytes)','restoreFromProofHalt(string,uint32,bytes)',
+ 'incidentState(string)','actionExecuted(string,uint32,bool,bytes)','incidentHashOf(string)'
 }
 expected_vault={
  'configurationAuthority()','proofHaltGuardian()','isProofHaltConfigured()','paused()',

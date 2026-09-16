@@ -1,5 +1,7 @@
 import importlib.util
 import unittest
+import hashlib
+import types
 
 spec = importlib.util.spec_from_file_location('stage7tests', str(__import__('pathlib').Path(__file__).resolve().parent/'test_proofhalt_stage7.py'))
 t = importlib.util.module_from_spec(spec)
@@ -14,6 +16,7 @@ class CrossLayerTests(unittest.TestCase):
         t.FakeGuardianInstance.active_halts = 0
         t.FakeGuardianInstance.incident_active = {}
         t.FakeGuardianInstance.incident_restored = {}
+        t.FakeGuardianInstance.incident_binding = {}
         ph.ProofHaltGuardianEVM = t.FakeGuardianInstance
         self.c = ph.ProofHalt('')
         self.clock = [1_800_000_000]
@@ -31,6 +34,10 @@ class CrossLayerTests(unittest.TestCase):
     def halt(self, iid, revision=1):
         inc = self.c.incidents[iid]
         inc.status = ph.u8(ph.INCIDENT_HALT_AUTHORIZED)
+        key=self.c._verdict_key(iid,revision)
+        binding=hashlib.sha256(f'halt:{iid}:{revision}'.encode()).hexdigest()
+        self.c.verdicts[key]=types.SimpleNamespace(decision_binding_hash=binding)
+        inc.latest_revision_key=key
         self.c._emit_halt(self.p, iid, revision)
         self.c.confirm_target_state(iid)
         self.assertEqual(int(inc.status), ph.INCIDENT_HALTED)
@@ -38,6 +45,10 @@ class CrossLayerTests(unittest.TestCase):
     def restore(self, iid, revision=2):
         inc = self.c.incidents[iid]
         inc.status = ph.u8(ph.INCIDENT_RESTORE_AUTHORIZED)
+        key=self.c._verdict_key(iid,revision)
+        binding=hashlib.sha256(f'restore:{iid}:{revision}'.encode()).hexdigest()
+        self.c.verdicts[key]=types.SimpleNamespace(decision_binding_hash=binding)
+        inc.latest_revision_key=key
         self.c._emit_restore(self.p, iid, revision)
         self.c.confirm_target_state(iid)
         self.assertEqual(int(inc.status), ph.INCIDENT_RESTORED)
@@ -95,8 +106,13 @@ class CrossLayerTests(unittest.TestCase):
     def test_06_close_requires_guardian_incident_restore_proof(self):
         iid = self.c.open_incident('demovault-v1', 'Claim')
         self.c.incidents[iid].status = ph.u8(ph.INCIDENT_RESTORED)
+        key=self.c._verdict_key(iid,1)
+        binding=hashlib.sha256(b'close-proof').hexdigest()
+        self.c.verdicts[key]=types.SimpleNamespace(decision_binding_hash=binding)
+        self.c.incidents[iid].latest_revision_key=key
         t.FakeGuardianInstance.incident_active[iid] = False
         t.FakeGuardianInstance.incident_restored[iid] = False
+        t.FakeGuardianInstance.incident_binding[iid] = bytes.fromhex(binding)
         with self.assertRaisesRegex(t.UserError, 'PH_TARGET_STATE_MISMATCH'):
             self.c.close_incident(iid)
 

@@ -25,6 +25,7 @@ contract ProofHaltGuardian {
 
     struct IncidentState {
         uint32 latestRevision;
+        bytes32 decisionBinding;
         bool haltActive;
         bool everHalted;
         bool restored;
@@ -39,6 +40,7 @@ contract ProofHaltGuardian {
     error InvariantViolation();
     error InvalidIncidentId();
     error InvalidRevision();
+    error InvalidDecisionBinding();
     error StaleRevision(uint32 supplied, uint32 latest);
     error ConflictingRevision(uint32 revision);
     error IncidentNotActive(bytes32 incidentHash);
@@ -51,6 +53,7 @@ contract ProofHaltGuardian {
         bytes32 indexed incidentHash,
         string incidentId,
         uint32 indexed revision,
+        bytes32 decisionBinding,
         uint256 activeHaltCount
     );
 
@@ -58,6 +61,7 @@ contract ProofHaltGuardian {
         bytes32 indexed incidentHash,
         string incidentId,
         uint32 indexed revision,
+        bytes32 decisionBinding,
         uint256 activeHaltCount,
         bool targetRestored
     );
@@ -98,10 +102,12 @@ contract ProofHaltGuardian {
     ///      until every independently active halt incident has been restored.
     function pauseFromProofHalt(
         string calldata incidentId,
-        uint32 revision
+        uint32 revision,
+        bytes calldata decisionBinding
     ) external onlyProofHalt {
         bytes32 incidentHash = _validateAndHashIncident(incidentId, revision);
-        bytes32 actionKey = _actionKey(incidentHash, revision, ACTION_HALT);
+        bytes32 binding = _validateDecisionBinding(decisionBinding);
+        bytes32 actionKey = _actionKey(incidentHash, revision, ACTION_HALT, binding);
 
         if (_executedActions[actionKey]) {
             emit ReplayIgnored(incidentHash, revision, ACTION_HALT);
@@ -121,6 +127,7 @@ contract ProofHaltGuardian {
 
         _executedActions[actionKey] = true;
         state.latestRevision = revision;
+        state.decisionBinding = binding;
         state.everHalted = true;
 
         if (!state.haltActive) {
@@ -136,7 +143,7 @@ contract ProofHaltGuardian {
             }
         }
 
-        emit HaltActivated(incidentHash, incidentId, revision, activeHaltCount);
+        emit HaltActivated(incidentHash, incidentId, revision, binding, activeHaltCount);
     }
 
     /// @notice Apply a finalized RESTORE authorization from ProofHalt.
@@ -144,10 +151,12 @@ contract ProofHaltGuardian {
     ///      when no other active ProofHalt incident still requires a halt.
     function restoreFromProofHalt(
         string calldata incidentId,
-        uint32 revision
+        uint32 revision,
+        bytes calldata decisionBinding
     ) external onlyProofHalt {
         bytes32 incidentHash = _validateAndHashIncident(incidentId, revision);
-        bytes32 actionKey = _actionKey(incidentHash, revision, ACTION_RESTORE);
+        bytes32 binding = _validateDecisionBinding(decisionBinding);
+        bytes32 actionKey = _actionKey(incidentHash, revision, ACTION_RESTORE, binding);
 
         if (_executedActions[actionKey]) {
             emit ReplayIgnored(incidentHash, revision, ACTION_RESTORE);
@@ -167,6 +176,7 @@ contract ProofHaltGuardian {
 
         _executedActions[actionKey] = true;
         state.latestRevision = revision;
+        state.decisionBinding = binding;
         state.haltActive = false;
         state.restored = true;
 
@@ -195,6 +205,7 @@ contract ProofHaltGuardian {
             incidentHash,
             incidentId,
             revision,
+            binding,
             activeHaltCount,
             targetRestored
         );
@@ -210,10 +221,16 @@ contract ProofHaltGuardian {
         return _incidentStates[keccak256(bytes(incidentId))].restored;
     }
 
+    /// @notice Latest ProofHalt verdict commitment applied for this incident.
+    function incidentDecisionBinding(string calldata incidentId) external view returns (bytes memory) {
+        return abi.encodePacked(_incidentStates[keccak256(bytes(incidentId))].decisionBinding);
+    }
+
     function incidentState(
         string calldata incidentId
     ) external view returns (
         uint32 latestRevision,
+        bytes32 decisionBinding,
         bool haltActive,
         bool everHalted,
         bool restored
@@ -222,6 +239,7 @@ contract ProofHaltGuardian {
         IncidentState storage state = _incidentStates[incidentHash];
         return (
             state.latestRevision,
+            state.decisionBinding,
             state.haltActive,
             state.everHalted,
             state.restored
@@ -231,11 +249,18 @@ contract ProofHaltGuardian {
     function actionExecuted(
         string calldata incidentId,
         uint32 revision,
-        bool restoreAction
+        bool restoreAction,
+        bytes calldata decisionBinding
     ) external view returns (bool) {
         bytes32 incidentHash = keccak256(bytes(incidentId));
         uint8 action = restoreAction ? ACTION_RESTORE : ACTION_HALT;
-        return _executedActions[_actionKey(incidentHash, revision, action)];
+        bytes32 binding = _validateDecisionBinding(decisionBinding);
+        return _executedActions[_actionKey(
+            incidentHash,
+            revision,
+            action,
+            binding
+        )];
     }
 
     function incidentHashOf(string calldata incidentId) external pure returns (bytes32) {
@@ -260,6 +285,11 @@ contract ProofHaltGuardian {
         }
     }
 
+    function _validateDecisionBinding(bytes calldata supplied) private pure returns (bytes32) {
+        if (supplied.length != 32) revert InvalidDecisionBinding();
+        return abi.decode(supplied, (bytes32));
+    }
+
     function _requireTargetBound() private view {
         address actualGuardian = IProofHaltProtected(protectedTarget).proofHaltGuardian();
         if (actualGuardian != address(this)) {
@@ -279,14 +309,16 @@ contract ProofHaltGuardian {
     function _actionKey(
         bytes32 incidentHash,
         uint32 revision,
-        uint8 action
+        uint8 action,
+        bytes32 decisionBinding
     ) private pure returns (bytes32) {
         return keccak256(
             abi.encode(
-                keccak256("PROOFHALT_GUARDIAN_ACTION_V1"),
+                keccak256("PROOFHALT_GUARDIAN_ACTION_V2"),
                 incidentHash,
                 revision,
-                action
+                action,
+                decisionBinding
             )
         );
     }
