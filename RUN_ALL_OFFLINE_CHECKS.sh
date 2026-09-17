@@ -9,7 +9,7 @@ python tests/test_stage9_demo_lifecycle.py
 python tools/security_invariants.py
 python tools/site_checks.py
 printf '\nBehavioral/model suites: 61/61 PASS\n'
-printf 'Security invariants: 58/58 PASS\n'
+printf 'Security invariants: 60/60 PASS\n'
 printf 'Static site checks: 41/41 PASS\n'
 printf 'Preserved Stage-9 audit: results/audit_results.txt (36/36 PASS)\n'
 printf 'PROOFHALT_RELEASE_GATE_PASS\n'

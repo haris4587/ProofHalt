@@ -2,7 +2,7 @@
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 
 """
-ProofHalt v1.1.0 — Autonomous Consensus Emergency Governor
+ProofHalt v1.1.1 — Autonomous Consensus Emergency Governor
 
 Agent Tank / Autonomous Protocols flagship Intelligent Contract.
 
@@ -38,7 +38,7 @@ from urllib.parse import unquote, urlsplit
 # Global immutable policy constants
 # -----------------------------------------------------------------------------
 
-SCHEMA_VERSION = "proofhalt-v3"
+SCHEMA_VERSION = "proofhalt-v4"
 PROTOCOL_CONSTITUTION_SCHEMA = "proofhalt-protocol-constitution/v2"
 ASSESSMENT_SCHEMA = "proofhalt-assessment/v2"
 REMEDIATION_SCHEMA = "proofhalt-remediation-assessment/v2"
@@ -302,6 +302,20 @@ class VerdictRevision:
     created_at: u64
 
 
+@allow_storage
+@dataclass(init=False)
+class StringList:
+    """Storage-safe wrapper for a dynamically allocated string array.
+
+    GenVM v0.2.16 cannot initialize ``DynArray[str]`` directly through
+    ``inmem_allocate`` because the generic alias itself has no zero-argument
+    constructor. Allocating this concrete wrapper initializes its nested
+    ``values`` array in storage without invoking the generic alias.
+    """
+
+    values: DynArray[str]
+
+
 # -----------------------------------------------------------------------------
 # EVM Guardian interface
 # -----------------------------------------------------------------------------
@@ -343,9 +357,9 @@ class ProofHalt(gl.Contract):
     evidence: TreeMap[str, EvidenceRecord]
     verdicts: TreeMap[str, VerdictRevision]
 
-    protocol_incidents: TreeMap[str, DynArray[str]]
-    incident_evidence: TreeMap[str, DynArray[str]]
-    incident_revisions: TreeMap[str, DynArray[str]]
+    protocol_incidents: TreeMap[str, StringList]
+    incident_evidence: TreeMap[str, StringList]
+    incident_revisions: TreeMap[str, StringList]
 
     evidence_hash_index: TreeMap[str, str]
 
@@ -816,15 +830,15 @@ class ProofHalt(gl.Contract):
 
     def _ensure_protocol_incident_array(self, protocol_id: str) -> None:
         if protocol_id not in self.protocol_incidents:
-            self.protocol_incidents[protocol_id] = gl.storage.inmem_allocate(DynArray[str])
+            self.protocol_incidents[protocol_id] = gl.storage.inmem_allocate(StringList)
 
     def _ensure_incident_evidence_array(self, incident_id: str) -> None:
         if incident_id not in self.incident_evidence:
-            self.incident_evidence[incident_id] = gl.storage.inmem_allocate(DynArray[str])
+            self.incident_evidence[incident_id] = gl.storage.inmem_allocate(StringList)
 
     def _ensure_incident_revision_array(self, incident_id: str) -> None:
         if incident_id not in self.incident_revisions:
-            self.incident_revisions[incident_id] = gl.storage.inmem_allocate(DynArray[str])
+            self.incident_revisions[incident_id] = gl.storage.inmem_allocate(StringList)
 
     def _has_new_evidence(self, incident: IncidentRecord) -> bool:
         return int(incident.evidence_count) > int(incident.evidence_sequence_at_last_revision)
@@ -883,7 +897,7 @@ class ProofHalt(gl.Contract):
         if incident_id not in self.incident_evidence:
             return out
 
-        ids = gl.storage.copy_to_memory(self.incident_evidence[incident_id])
+        ids = gl.storage.copy_to_memory(self.incident_evidence[incident_id]).values
         for evidence_id in ids:
             e = gl.storage.copy_to_memory(self.evidence[evidence_id])
             out.append({
@@ -1599,7 +1613,7 @@ Action codes: 3 KEEP_HALTED, 4 RESTORE.
 
         self.verdicts[revision_key] = revision
         self._ensure_incident_revision_array(incident.incident_id)
-        self.incident_revisions[incident.incident_id].append(revision_key)
+        self.incident_revisions[incident.incident_id].values.append(revision_key)
 
         incident.revision_count = u32(revision_number)
         incident.latest_revision_key = revision_key
@@ -1968,7 +1982,7 @@ Action codes: 3 KEEP_HALTED, 4 RESTORE.
         self._ensure_incident_evidence_array(incident_id)
         self._ensure_incident_revision_array(incident_id)
         self._ensure_protocol_incident_array(protocol.protocol_id)
-        self.protocol_incidents[protocol.protocol_id].append(incident_id)
+        self.protocol_incidents[protocol.protocol_id].values.append(incident_id)
 
         protocol.unresolved_incident_count = u32(int(protocol.unresolved_incident_count) + 1)
         self.incident_count = u32(sequence)
@@ -2016,7 +2030,7 @@ Action codes: 3 KEEP_HALTED, 4 RESTORE.
         )
 
         self._ensure_incident_evidence_array(incident.incident_id)
-        self.incident_evidence[incident.incident_id].append(evidence_id)
+        self.incident_evidence[incident.incident_id].values.append(evidence_id)
         self.evidence_hash_index[duplicate_key] = evidence_id
 
         incident.evidence_count = u32(local_sequence)
@@ -2440,7 +2454,7 @@ Action codes: 3 KEEP_HALTED, 4 RESTORE.
         self._require_incident(incident_id)
         if incident_id not in self.incident_evidence:
             return []
-        return [x for x in self.incident_evidence[incident_id]]
+        return [x for x in self.incident_evidence[incident_id].values]
 
     @gl.public.view
     def get_verdict(self, incident_id: str, revision: u32) -> dict[str, typing.Any]:
@@ -2500,14 +2514,14 @@ Action codes: 3 KEEP_HALTED, 4 RESTORE.
         self._require_incident(incident_id)
         if incident_id not in self.incident_revisions:
             return []
-        return [x for x in self.incident_revisions[incident_id]]
+        return [x for x in self.incident_revisions[incident_id].values]
 
     @gl.public.view
     def get_protocol_incidents(self, protocol_id: str) -> list[str]:
         self._require_protocol(protocol_id)
         if protocol_id not in self.protocol_incidents:
             return []
-        return [x for x in self.protocol_incidents[protocol_id]]
+        return [x for x in self.protocol_incidents[protocol_id].values]
 
     @gl.public.view
     def get_action_status(self, incident_id: str) -> dict[str, typing.Any]:

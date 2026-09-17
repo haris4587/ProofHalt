@@ -74,6 +74,10 @@ class Storage:
     @staticmethod
     def inmem_allocate(spec):
         if isinstance(spec,StorageSpec) and spec.kind=='treemap': return TreeMap()
+        if isinstance(spec,type) and spec.__name__=='StringList':
+            value=object.__new__(spec)
+            value.values=DynArray()
+            return value
         return DynArray()
     @staticmethod
     def copy_to_memory(x): return copy.deepcopy(x)

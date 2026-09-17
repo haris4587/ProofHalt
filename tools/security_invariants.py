@@ -67,6 +67,8 @@ ck('Python immutable snapshot host policy', 'snapshot_hosts' in p and 'PH_SNAPSH
 ck('Python verdict-to-Guardian decision binding', 'decision_binding_hash' in p and 'bytes.fromhex' in p)
 ck('Authorization-only mode disclosed', 'AUTHORIZATION_ONLY' in p and 'external_enforcement_supported' in p)
 ck('Authorization-only mode never emits EVM action', 'if self.authorization_only:' in p and 'PH_ENFORCEMENT_UNAVAILABLE' in p)
+ck('Nested dynamic arrays use a concrete storage wrapper', 'class StringList' in p and 'TreeMap[str, StringList]' in p)
+ck('Generic DynArray is never directly in-memory allocated', 'inmem_allocate(DynArray' not in p)
 ck('Studionet demo target accepts no assets', 'accepts_assets' in d and 'simulate_unauthorized_withdrawal' in d)
-assert len(checks)==58
-print('SUMMARY 58/58 PASS')
+assert len(checks)==60
+print('SUMMARY 60/60 PASS')
