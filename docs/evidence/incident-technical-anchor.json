@@ -1,0 +1,24 @@
+{
+  "schema": "proofhalt-evidence/v1",
+  "kind": "studionet-technical-anchor",
+  "network": {
+    "name": "GenLayer Studionet",
+    "chain_id": 61999
+  },
+  "protocol_id": "proofhalt-studionet-demo",
+  "incident_id": "PH-000001",
+  "target_contract": "0xB156762A2339174695C570e74295B6FBf7D1Ecd5",
+  "target_deployment_transaction": "0x4be33cf35eac788f20372a56baf3e4007277221928cae1776cf986c77efe0f14",
+  "incident_transaction": "0xb94194ac5b35aa0cd0efa00c7fd24b8223b831ce32581505b8d74a0e21735eab",
+  "explorer_address_url": "https://explorer-studio.genlayer.com/address/0xB156762A2339174695C570e74295B6FBf7D1Ecd5",
+  "observed_finalized_state": {
+    "accepts_assets": false,
+    "demo_only": true,
+    "incident_active": true,
+    "patched_at_event": 0,
+    "simulated_loss_events": 1,
+    "vulnerable": true
+  },
+  "claim": "The finalized incident transaction changed the protected non-financial demo target to incident_active=true and simulated_loss_events=1 while vulnerable=true.",
+  "recorded_at": "2026-09-17T04:35:03Z"
+}

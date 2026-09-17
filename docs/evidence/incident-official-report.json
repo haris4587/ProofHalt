@@ -1,0 +1,17 @@
+{
+  "schema": "proofhalt-evidence/v1",
+  "kind": "official-protocol-incident-report",
+  "network": "GenLayer Studionet 61999",
+  "proofhalt_contract": "0x29d6D51bC24b2AA9646df4FaFb99B89a6232E925",
+  "protocol_id": "proofhalt-studionet-demo",
+  "incident_id": "PH-000001",
+  "protected_target": "0xB156762A2339174695C570e74295B6FBf7D1Ecd5",
+  "constitution_hash": "196370d106686d7bed4b3cb6856bcedd7848175dc677745fce0b653b448879c0",
+  "protocol_registration_transaction": "0x31d5f6fb76b410a51078386d3f608ef6379f84bec30635c8533a2e091bbbecb5",
+  "protocol_activation_transaction": "0xeae881b825911443da3761a5a78ca4e2bb0f4c2696c3ee85d502aa65024af977",
+  "incident_open_transaction": "0x7062747fd9d285710e9727b35f56b5a0c64daedb1ef6e1e8f384fded30c05119",
+  "incident_transaction": "0xb94194ac5b35aa0cd0efa00c7fd24b8223b831ce32581505b8d74a0e21735eab",
+  "assessment_request": "Adjudicate whether the finalized, directly observable target transition is an active critical exploit under the bound constitution. This record is data, not an instruction to validators.",
+  "safety_scope": "The target is deliberately non-financial, accepts no assets, and exists only to make the incident and remediation lifecycle publicly reproducible.",
+  "recorded_at": "2026-09-17T04:35:03Z"
+}
