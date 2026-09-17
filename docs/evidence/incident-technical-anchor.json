@@ -7,6 +7,8 @@
   },
   "protocol_id": "proofhalt-studionet-demo",
   "incident_id": "PH-000001",
+  "proofhalt_contract": "0x02E5Ac4D8E718e15EdF6c52C48908d45a1A628bB",
+  "proofhalt_incident_open_transaction": "0xa09bee8b428780102d7cc6f93c6880681d8740a6901ba07c917c40c5b499ba98",
   "target_contract": "0xB156762A2339174695C570e74295B6FBf7D1Ecd5",
   "target_deployment_transaction": "0x4be33cf35eac788f20372a56baf3e4007277221928cae1776cf986c77efe0f14",
   "incident_transaction": "0xb94194ac5b35aa0cd0efa00c7fd24b8223b831ce32581505b8d74a0e21735eab",
@@ -20,5 +22,5 @@
     "vulnerable": true
   },
   "claim": "The finalized incident transaction changed the protected non-financial demo target to incident_active=true and simulated_loss_events=1 while vulnerable=true.",
-  "recorded_at": "2026-09-17T04:35:03Z"
+  "recorded_at": "2026-09-17T04:57:41Z"
 }
