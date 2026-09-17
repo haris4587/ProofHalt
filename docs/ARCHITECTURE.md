@@ -28,4 +28,4 @@ Global pause state is insufficient to prove that a specific incident was enforce
 - Web evidence is untrusted input and may contain prompt injection.
 - LLM output is advisory until it passes deterministic schema and safety gates.
 - The Guardian cannot choose a verdict and cannot execute arbitrary calls.
-- The demo web app is a read-only reviewer interface; its live contract read is wallet-free and its optional MetaMask path cannot sign or submit transactions.
+- The web app keeps all public reads wallet-free and uses MetaMask only for explicit, named zero-value writes. It shows wallet confirmation, submission, consensus, finality, leader execution verification and contract readback.

@@ -3,14 +3,15 @@
 ## GenLayer
 
 - Network: GenLayer Studionet / Studio explorer
-- Intelligent Contract: `0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767`
-- Deployment transaction: `0x1e4d126a9f8880f259a7e6eb983b7a949110d7e18631b691f0abf9e54fee53d7`
+- Intelligent Contract: `0x02E5Ac4D8E718e15EdF6c52C48908d45a1A628bB`
+- Deployment transaction: `0xea7579b31f5461adccfc83065a166097b88b2e002b88f032d5c3feb2c42dc68c`
 - Recorded release status: FINALIZED
 
 Explorer links:
 
-- https://explorer-studio.genlayer.com/address/0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767
-- https://explorer-studio.genlayer.com/tx/0x1e4d126a9f8880f259a7e6eb983b7a949110d7e18631b691f0abf9e54fee53d7
+- https://explorer-studio.genlayer.com/address/0x02E5Ac4D8E718e15EdF6c52C48908d45a1A628bB
+- https://explorer-studio.genlayer.com/tx/0xea7579b31f5461adccfc83065a166097b88b2e002b88f032d5c3feb2c42dc68c
+- Public lifecycle: [`STUDIONET_PUBLIC_RECORD.md`](STUDIONET_PUBLIC_RECORD.md)
 
 ## Netlify
 

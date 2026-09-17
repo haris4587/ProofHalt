@@ -4,7 +4,7 @@
 
 ProofHalt is an evidence-bound emergency governor for autonomous protocols. GenLayer validators independently inspect constitution-approved evidence, reach consensus on a narrow HALT or RESTORE decision, and bind the result to the exact incident, revision, evidence set and enforcement action.
 
-[Live demo](https://proofhalt.netlify.app) · [GenLayer contract](https://explorer-studio.genlayer.com/address/0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767) · [Deployment transaction](https://explorer-studio.genlayer.com/tx/0x1e4d126a9f8880f259a7e6eb983b7a949110d7e18631b691f0abf9e54fee53d7)
+[Live demo](https://proofhalt.netlify.app) · [GenLayer contract](https://explorer-studio.genlayer.com/address/0x02E5Ac4D8E718e15EdF6c52C48908d45a1A628bB) · [Deployment transaction](https://explorer-studio.genlayer.com/tx/0xea7579b31f5461adccfc83065a166097b88b2e002b88f032d5c3feb2c42dc68c) · [Public incident record](docs/STUDIONET_PUBLIC_RECORD.md)
 
 ## What makes ProofHalt different
 
@@ -32,19 +32,19 @@ flowchart LR
 | `contracts/proofhalt.py` | Constitution registry, evidence intake, consensus adjudication, append-only revisions, HALT/RESTORE authorization |
 | `contracts/ProofHaltGuardian.sol` | Minimal incident/revision-scoped enforcement bridge |
 | `contracts/DemoVault.sol` | Testnet-only protected target with a bounded demo exploit and one-way patch |
-| `site/` | Reviewer-facing read-only deployment verifier, incident-room demo and release manifest |
+| `site/` | Wallet-enabled reviewer console for live reads and complete Studionet write lifecycles |
 
 ## Verification
 
 The recovered release bundle is reproducible from this repository:
 
-- Python/state-machine/model suites: **60/60 PASS**
+- Python/state-machine/model suites: **61/61 PASS**
 - Stage-9 static cross-layer audit snapshot: **36/36 PASS**
-- Additional repository security invariants: **50/50 PASS**
-- Static website release checks: **22/22 PASS**
+- Additional repository security invariants: **60/60 PASS**
+- Static website release checks: **41/41 PASS**
 - Solidity compiler gate: configured for exact `solc 0.8.36` and run in GitHub Actions
 
-The browser SDK is pinned to `genlayer-js` 1.1.8 and bundled locally during the build. The live constitution read requires no wallet. Optional MetaMask connection requests only account access and a switch/add to Studionet; ProofHalt does not request signatures, approvals, transactions or Snap installation.
+The browser SDK is pinned to `genlayer-js` 1.1.8 and bundled locally during the build. The live constitution and public incident reads require no wallet. MetaMask requests account access and a switch/add to Studionet; writes occur only after the user clicks a named action and confirms the zero-value contract call in MetaMask. ProofHalt requests no token approval, arbitrary signature or Snap installation.
 
 Run the local gate:
 
@@ -64,13 +64,15 @@ PROOFHALT_RELEASE_GATE_PASS
 | Field | Value |
 |---|---|
 | GenLayer network | Studionet / Studio explorer |
-| ProofHalt Intelligent Contract | `0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767` |
-| Deploy transaction | `0x1e4d126a9f8880f259a7e6eb983b7a949110d7e18631b691f0abf9e54fee53d7` |
+| ProofHalt Intelligent Contract | `0x02E5Ac4D8E718e15EdF6c52C48908d45a1A628bB` |
+| Deploy transaction | `0xea7579b31f5461adccfc83065a166097b88b2e002b88f032d5c3feb2c42dc68c` |
+| Public protocol / incident | `proofhalt-studionet-demo` / `PH-000001` |
+| Latest verdict | `INSUFFICIENT_EVIDENCE` / no action (fail-closed) |
 | Website | `https://proofhalt.netlify.app` |
 | Netlify production site | `proofhalt` (`e6791f4a-0842-4e5c-905a-a39e53de9261`) |
 | Netlify production URL | `https://proofhalt.netlify.app` |
 
-The Solidity Guardian and DemoVault are included, compiled/audited through the release pipeline, and lifecycle-tested locally/model-side. This repository does **not** claim a funded public Bradbury/EVM deployment for those two contracts.
+The public case preserves real registration, activation, incident, four evidence writes and two consensus verdict revisions. Studionet validators could not retrieve the web evidence, so ProofHalt correctly refused HALT authority; remediation/restore were therefore not valid transitions. The Solidity Guardian and DemoVault remain compiled and lifecycle-tested locally/model-side. This repository does **not** claim a funded public Bradbury/EVM deployment for them.
 
 ## Repository map
 

@@ -1,0 +1,41 @@
+{
+  "schema": "proofhalt-public-record/v1",
+  "network": {
+    "name": "GenLayer Studionet",
+    "chain_id": 61999
+  },
+  "proofhalt_contract": "0x02E5Ac4D8E718e15EdF6c52C48908d45a1A628bB",
+  "proofhalt_deployment_transaction": "0xea7579b31f5461adccfc83065a166097b88b2e002b88f032d5c3feb2c42dc68c",
+  "target_contract": "0xB156762A2339174695C570e74295B6FBf7D1Ecd5",
+  "target_deployment_transaction": "0x4be33cf35eac788f20372a56baf3e4007277221928cae1776cf986c77efe0f14",
+  "target_incident_transaction": "0xb94194ac5b35aa0cd0efa00c7fd24b8223b831ce32581505b8d74a0e21735eab",
+  "protocol_id": "proofhalt-studionet-demo",
+  "incident_id": "PH-000001",
+  "transactions": {
+    "register_protocol": "0x1ad24921a05d9c43a308c6fdfacf8997a2c34d0d63905b1b011586e8a0a26a66",
+    "activate_protocol": "0x8ccb47accfc9f78d226f0fc37311e1493ea093dd18c98f680f4f810472d52968",
+    "open_incident": "0xa09bee8b428780102d7cc6f93c6880681d8740a6901ba07c917c40c5b499ba98",
+    "submit_evidence_1": "0x2fe3c696a258f63ed985d2d20b36306cc0107448a2029d5c1e93df9c79ea8ddd",
+    "submit_evidence_2": "0x80f01d407598b3a7029d7019d83fd38e8d68be05f7541a76f522d12378d9325e",
+    "adjudicate_incident": "0x855e009ae9ec60abaff6fb20bd47fee4e70cfa27ec967e5af2bce737aefab115",
+    "submit_evidence_3": "0x35f84419b56fb237ac5948af24220d272147a5f960156fa13e1b39954e747824",
+    "submit_evidence_4": "0x3584ea2bbbabdf85400b2598d091463e2db2121f62fa7b05e43578053d17acdd",
+    "request_recheck": "0x01a813218023e9653912c3d76b7af8446eaf4e5edc244bda1eb79795f1a14d20"
+  },
+  "execution_verification": {
+    "transaction_status": "FINALIZED",
+    "consensus_result": "MAJORITY_AGREE",
+    "leader_result_status": "return",
+    "leader_execution_result": "SUCCESS"
+  },
+  "latest_verdict": {
+    "revision_key": "PH-000001:R2",
+    "finding": "INSUFFICIENT_EVIDENCE",
+    "recommended_action": "NONE",
+    "authorized_action": "NONE",
+    "confidence": 100,
+    "reason": "Studionet validators reported that all submitted source and snapshot web fetches were unavailable, so the fail-closed evidence-integrity gates correctly refused HALT authorization."
+  },
+  "recovery_status": "NOT_APPLICABLE_WITHOUT_HALT_AUTHORIZATION",
+  "recorded_at": "2026-09-17T05:16:00Z"
+}

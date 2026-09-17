@@ -1,11 +1,11 @@
 import {readContract,readGlobalConstitution,submitAndFinalize} from './genlayer-client.js';
 
-const CONTRACT_ADDRESS='0x9E43C93Dae87C32eEadbD8E733FAb4e54cF06767';
+const CONTRACT_ADDRESS='0x02E5Ac4D8E718e15EdF6c52C48908d45a1A628bB';
 const STUDIONET_CHAIN_ID=61999;
 const STUDIONET_CHAIN_HEX='0xF22F';
 const STUDIONET_RPC='https://studio.genlayer.com/api';
 const EXPLORER='https://explorer-studio.genlayer.com';
-const PUBLIC_RECORD={protocolId:'',incidentId:''};
+const PUBLIC_RECORD={protocolId:'proofhalt-studionet-demo',incidentId:'PH-000001'};
 
 const protocolStatuses=['NONE','INTEGRATION PENDING','PROTECTED','DEACTIVATION PENDING','INACTIVE'];
 const incidentStatuses=['NONE','OPEN','DISMISSED','WATCH','HALT AUTHORIZED','HALTED','REVIEW DUE','REMEDIATION SUBMITTED','KEEP HALTED','RESTORE AUTHORIZED','RESTORED','CLOSED'];

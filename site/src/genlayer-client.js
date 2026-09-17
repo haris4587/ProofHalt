@@ -20,7 +20,12 @@ function leaderReceipt(transaction) {
   const receipts = transaction?.consensus_data?.leader_receipt
     ?? transaction?.consensusData?.leaderReceipt
     ?? [];
-  if (Array.isArray(receipts)) return receipts.at(-1);
+  if (Array.isArray(receipts)) {
+    // FINALIZED Studionet transactions may append cancelled/idle validator
+    // receipts after the authoritative leader receipt. Never infer execution
+    // failure from array position.
+    return receipts.find((receipt) => receipt?.mode === 'leader') ?? receipts[0];
+  }
   return receipts;
 }
 
@@ -33,6 +38,9 @@ export function assertSuccessfulExecution(receipt, transaction) {
   // Studionet currently omits txExecutionResultName from some finalized SDK
   // receipts. The consensus leader receipt is authoritative in that case.
   const leader = leaderReceipt(transaction);
+  if (!sdkResult && !leader) {
+    throw new Error('Finalized transaction has no verifiable execution receipt');
+  }
   const resultStatus = leader?.result?.status;
   const executionStatus = leader?.execution_result ?? leader?.executionResult;
   if (resultStatus && resultStatus !== 'return') {

@@ -22,7 +22,9 @@ The GenLayer prompts explicitly classify evidence content as untrusted data. Ins
 
 ## Reviewer wallet surface
 
-The website's live `get_global_constitution` verification is public and requires no wallet. The pinned `genlayer-js` dependency is bundled locally at build time, so the page does not execute code from a third-party module CDN. Optional MetaMask connection is restricted to `eth_requestAccounts`, `eth_chainId`, `wallet_addEthereumChain` and `wallet_switchEthereumChain`. The application contains no signature, approval, transaction, write-contract or Snap request.
+The website's live `get_global_constitution` and public incident verification are public and require no wallet. The pinned `genlayer-js` dependency is bundled locally at build time, so the page does not execute code from a third-party module CDN. MetaMask connection is restricted to account access and the Studionet add/switch methods. A write is requested only after the user submits a named workflow form; it is a zero-value contract call and its wallet, submitted, consensus, finalized, execution and readback states are displayed. The application contains no token approval, arbitrary signature or Snap request.
+
+The production hostname was submitted for MetaMask false-positive review after a phishing warning. The review remains pending; ProofHalt does not bypass or instruct users to bypass wallet/browser safety interstitials.
 
 ## Non-claims
 
