@@ -1,0 +1,17 @@
+{
+  "schema": "proofhalt-evidence/v1",
+  "kind": "official-live-incident-corroboration",
+  "network": "GenLayer Studionet 61999",
+  "proofhalt_contract": "0x02E5Ac4D8E718e15EdF6c52C48908d45a1A628bB",
+  "protocol_id": "proofhalt-studionet-demo",
+  "incident_id": "PH-000001",
+  "protected_target": "0xB156762A2339174695C570e74295B6FBf7D1Ecd5",
+  "constitution_hash": "196370d106686d7bed4b3cb6856bcedd7848175dc677745fce0b653b448879c0",
+  "protocol_registration_transaction": "0x1ad24921a05d9c43a308c6fdfacf8997a2c34d0d63905b1b011586e8a0a26a66",
+  "protocol_activation_transaction": "0x8ccb47accfc9f78d226f0fc37311e1493ea093dd18c98f680f4f810472d52968",
+  "incident_open_transaction": "0xa09bee8b428780102d7cc6f93c6880681d8740a6901ba07c917c40c5b499ba98",
+  "incident_transaction": "0xb94194ac5b35aa0cd0efa00c7fd24b8223b831ce32581505b8d74a0e21735eab",
+  "assessment_request": "Recheck the active critical incident using the finalized target transition and independently pinned repository record.",
+  "safety_scope": "The protected target is deliberately non-financial, accepts no assets and exists only to make ProofHalt's incident and recovery lifecycle publicly reproducible.",
+  "recorded_at": "2026-09-17T05:10:51Z"
+}
