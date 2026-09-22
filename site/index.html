@@ -29,7 +29,7 @@
 
 <section id="architecture" class="shell grid3">
   <article><p class="num">01</p><h2>Constitution</h2><p>Targets, exact evidence hosts, independent origin groups and recovery rules are committed before an incident.</p></article>
-  <article><p class="num">02</p><h2>Consensus</h2><p>Validators independently fetch source pages and immutable snapshots, verify hashes, and reassess a strict schema.</p></article>
+  <article><p class="num">02</p><h2>Consensus</h2><p>Validators hash the approved source bytes or a contract-verified source-native artifact, then independently reassess a strict schema.</p></article>
   <article><p class="num">03</p><h2>Bound action</h2><p>The verdict commits the constitution, evidence set, incident, revision and narrow action. Studio records authorization; EVM Guardian deployments enforce it.</p></article>
 </section>
 
@@ -86,8 +86,9 @@
         <form data-action="open_incident"><label>Protocol ID<input name="protocolId" value="proofhalt-public-demo" required></label><label>Claim summary<textarea name="claim" rows="3" required>Active unauthorized-withdrawal behavior is observable on the registered Studionet demo target and requires evidence-bound emergency authorization.</textarea></label><button class="button" type="submit">Open incident</button></form>
       </details>
 
-      <details class="workflow-card"><summary><span>4</span>Submit hash-bound evidence</summary>
+      <details class="workflow-card"><summary><span>4</span>Submit source-bound evidence</summary>
         <form data-action="submit_evidence"><div class="form-grid"><label>Incident ID<input name="incidentId" placeholder="PH-000001" required></label><label>Origin ID<input name="originId" placeholder="studionet-explorer" required></label><label>Phase<select name="phase"><option value="0">Original</option><option value="1">Supporting</option><option value="2">Counter</option><option value="4">Periodic review</option></select></label></div><label>Source URL<input name="sourceUrl" type="url" required></label><label>Immutable snapshot URL<input name="snapshotUri" type="url" required></label><label>Snapshot SHA-256<input name="contentHash" pattern="[0-9a-fA-F]{64}" required></label><label>Audit note<input name="note" maxlength="512"></label><button class="button" type="submit">Submit evidence</button></form>
+        <p class="fine">The source and snapshot URLs must be identical, unless a GitHub blob URL and raw URL name the same file at the same 40-character commit. Claimant-selected mirrors are rejected by the contract.</p>
       </details>
 
       <details class="workflow-card"><summary><span>5</span>Adjudicate and read the finalized verdict</summary>
@@ -99,6 +100,12 @@
         <form data-action="apply_target_patch"><label>Demo target contract<input name="target" required></label><button class="button" type="submit">Apply one-way demo patch</button></form>
         <form data-action="submit_remediation"><div class="form-grid"><label>Incident ID<input name="incidentId" placeholder="PH-000001" required></label><label>Origin ID<input name="originId" required></label></div><label>Source URL<input name="sourceUrl" type="url" required></label><label>Immutable snapshot URL<input name="snapshotUri" type="url" required></label><label>Snapshot SHA-256<input name="contentHash" pattern="[0-9a-fA-F]{64}" required></label><label>Audit note<input name="note" maxlength="512"></label><button class="button" type="submit">Submit remediation</button></form>
         <form data-action="adjudicate_remediation"><label>Incident ID<input name="incidentId" placeholder="PH-000001" required></label><button class="button" type="submit">Adjudicate recovery</button></form>
+      </details>
+
+      <details class="workflow-card"><summary><span>7</span>Confirm enforcement and close recovery</summary>
+        <p class="fine">These calls complete the Guardian-backed lifecycle on an enforcement-capable deployment. The current Studionet contract is authorization-only and will fail closed with <code>PH_ENFORCEMENT_UNAVAILABLE</code>.</p>
+        <form data-action="confirm_target_state"><label>Incident ID<input name="incidentId" placeholder="PH-000001" required></label><button class="button" type="submit">Confirm target state</button></form>
+        <form data-action="close_incident"><label>Restored incident ID<input name="incidentId" placeholder="PH-000001" required></label><button class="button ghost" type="submit">Close restored incident</button></form>
       </details>
     </div>
 

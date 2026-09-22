@@ -98,10 +98,27 @@ function canonicalize(value){
 }
 async function sha256(text){const bytes=new TextEncoder().encode(text);const hash=await crypto.subtle.digest('SHA-256',bytes);return [...new Uint8Array(hash)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function constitutionPayload(text){const canonical=canonicalize(JSON.parse(text));return {canonical,hash:await sha256(canonical)}}
+function assertSourceSnapshotBinding(sourceValue,snapshotValue){
+  const source=sourceValue.trim();const snapshot=snapshotValue.trim();
+  if(source===snapshot)return 'DIRECT_SOURCE_BYTES';
+  const sourceUrl=new URL(source);const snapshotUrl=new URL(snapshot);
+  const sourceParts=sourceUrl.pathname.replace(/^\/+|\/+$/g,'').split('/');
+  const snapshotParts=snapshotUrl.pathname.replace(/^\/+|\/+$/g,'').split('/');
+  const githubCommitRaw=sourceUrl.hostname.toLowerCase()==='github.com'
+    && snapshotUrl.hostname.toLowerCase()==='raw.githubusercontent.com'
+    && sourceParts.length>=5 && snapshotParts.length>=4
+    && sourceParts[2]==='blob' && /^[0-9a-f]{40}$/i.test(sourceParts[3])
+    && sourceParts[0].toLowerCase()===snapshotParts[0].toLowerCase()
+    && sourceParts[1].toLowerCase()===snapshotParts[1].toLowerCase()
+    && sourceParts[3].toLowerCase()===snapshotParts[2].toLowerCase()
+    && sourceParts.slice(4).join('/')===snapshotParts.slice(3).join('/');
+  if(githubCommitRaw)return 'GITHUB_COMMIT_RAW';
+  throw new Error('Source/snapshot mismatch: use the exact same URL, or matching GitHub blob/raw URLs pinned to one 40-character commit.');
+}
 async function generateConstitution(){
   const target=$('targetInput').value.trim();const protocolId=document.querySelector('#registerForm [name=protocolId]').value.trim();
   if(!/^0x[0-9a-fA-F]{40}$/.test(target)){setMessage('Enter the target contract address before generating the constitution.','error');return}
-  const constitution={schema:'proofhalt-protocol-constitution/v2',protocol_id:protocolId,protected_targets:[target],dependencies:[],halt_conditions:[{id:'ACTIVE_UNAUTHORIZED_WITHDRAWAL',description:'A presently active unauthorized withdrawal or equivalent critical state transition affecting the registered target.'}],exclusions:['Historical incidents with no active exploit','Price volatility or governance disagreement without technical exploitation','Unverified or hash-mismatched evidence'],minimum_independent_groups:2,requires_technical_anchor:true,critical_loss_bps:1,review_period_seconds:3600,evidence_sources:[{origin_id:'studionet-explorer',exact_host:'explorer-studio.genlayer.com',path_prefix:'/address/',source_type:1,technical_anchor:true},{origin_id:'proofhalt-repository',exact_host:'github.com',path_prefix:'/haris4587/ProofHalt/',source_type:2,technical_anchor:false}],snapshot_hosts:['raw.githubusercontent.com']};
+  const constitution={schema:'proofhalt-protocol-constitution/v2',protocol_id:protocolId,protected_targets:[target],dependencies:[],halt_conditions:[{id:'ACTIVE_UNAUTHORIZED_WITHDRAWAL',description:'A presently active unauthorized withdrawal or equivalent critical state transition affecting the registered target.'}],exclusions:['Historical incidents with no active exploit','Price volatility or governance disagreement without technical exploitation','Unverified, hash-mismatched or source/snapshot-mismatched evidence'],minimum_independent_groups:2,requires_technical_anchor:true,critical_loss_bps:1,review_period_seconds:3600,evidence_sources:[{origin_id:'studionet-explorer',exact_host:'explorer-studio.genlayer.com',path_prefix:'/address/',source_type:1,technical_anchor:true},{origin_id:'proofhalt-repository',exact_host:'github.com',path_prefix:'/haris4587/ProofHalt/',source_type:2,technical_anchor:false}],snapshot_hosts:['explorer-studio.genlayer.com','raw.githubusercontent.com']};
   const canonical=canonicalize(constitution);$('constitutionInput').value=JSON.stringify(constitution,null,2);$('constitutionHash').value=await sha256(canonical);$('constitutionUri').value='https://raw.githubusercontent.com/haris4587/ProofHalt/main/docs/live_constitution.json';
 }
 
@@ -111,11 +128,13 @@ const actionConfig={
   publish_constitution:{address:()=>CONTRACT_ADDRESS,args:async f=>{const c=await constitutionPayload(f.constitution.value);if(c.hash!==f.constitutionHash.value.toLowerCase())throw new Error('Constitution hash does not match canonical JSON');return [f.protocolId.value.trim(),f.constitution.value,c.hash,f.constitutionUri.value.trim()]},readback:async f=>readContract(CONTRACT_ADDRESS,'get_pending_constitution',[f.protocolId.value.trim()])},
   activate_pending_constitution:{address:()=>CONTRACT_ADDRESS,args:async f=>[f.protocolId.value.trim()],readback:async f=>readContract(CONTRACT_ADDRESS,'get_active_constitution',[f.protocolId.value.trim()])},
   open_incident:{address:()=>CONTRACT_ADDRESS,args:async f=>[f.protocolId.value.trim(),f.claim.value.trim()],readback:async f=>readContract(CONTRACT_ADDRESS,'get_protocol_incidents',[f.protocolId.value.trim()])},
-  submit_evidence:{address:()=>CONTRACT_ADDRESS,args:async f=>[f.incidentId.value.trim(),f.originId.value.trim(),f.sourceUrl.value.trim(),f.snapshotUri.value.trim(),f.contentHash.value.toLowerCase(),Number(f.phase.value),f.note.value.trim()],readback:async f=>readContract(CONTRACT_ADDRESS,'get_incident',[f.incidentId.value.trim()])},
+  submit_evidence:{address:()=>CONTRACT_ADDRESS,args:async f=>{assertSourceSnapshotBinding(f.sourceUrl.value,f.snapshotUri.value);return [f.incidentId.value.trim(),f.originId.value.trim(),f.sourceUrl.value.trim(),f.snapshotUri.value.trim(),f.contentHash.value.toLowerCase(),Number(f.phase.value),f.note.value.trim()]},readback:async f=>readContract(CONTRACT_ADDRESS,'get_incident',[f.incidentId.value.trim()])},
   adjudicate_incident:{address:()=>CONTRACT_ADDRESS,args:async f=>[f.incidentId.value.trim()],readback:async f=>readContract(CONTRACT_ADDRESS,'get_latest_verdict',[f.incidentId.value.trim()])},
   apply_target_patch:{address:f=>f.target.value.trim(),functionName:'apply_one_way_patch',args:async()=>[],readback:async f=>readContract(f.target.value.trim(),'get_security_state',[])},
-  submit_remediation:{address:()=>CONTRACT_ADDRESS,args:async f=>[f.incidentId.value.trim(),f.originId.value.trim(),f.sourceUrl.value.trim(),f.snapshotUri.value.trim(),f.contentHash.value.toLowerCase(),f.note.value.trim()],readback:async f=>readContract(CONTRACT_ADDRESS,'get_incident',[f.incidentId.value.trim()])},
+  submit_remediation:{address:()=>CONTRACT_ADDRESS,args:async f=>{assertSourceSnapshotBinding(f.sourceUrl.value,f.snapshotUri.value);return [f.incidentId.value.trim(),f.originId.value.trim(),f.sourceUrl.value.trim(),f.snapshotUri.value.trim(),f.contentHash.value.toLowerCase(),f.note.value.trim()]},readback:async f=>readContract(CONTRACT_ADDRESS,'get_incident',[f.incidentId.value.trim()])},
   adjudicate_remediation:{address:()=>CONTRACT_ADDRESS,args:async f=>[f.incidentId.value.trim()],readback:async f=>readContract(CONTRACT_ADDRESS,'get_latest_verdict',[f.incidentId.value.trim()])},
+  confirm_target_state:{address:()=>CONTRACT_ADDRESS,args:async f=>[f.incidentId.value.trim()],readback:async f=>readContract(CONTRACT_ADDRESS,'get_incident',[f.incidentId.value.trim()])},
+  close_incident:{address:()=>CONTRACT_ADDRESS,args:async f=>[f.incidentId.value.trim()],readback:async f=>readContract(CONTRACT_ADDRESS,'get_incident',[f.incidentId.value.trim()])},
 };
 
 async function runWrite(form,action){

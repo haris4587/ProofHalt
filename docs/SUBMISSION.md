@@ -10,9 +10,9 @@ ProofHalt lets GenLayer validators independently verify constitution-approved ev
 
 ## Problem and solution
 
-Autonomous protocols need to react to exploits without giving a model, reporter or multisig unchecked emergency power. ProofHalt freezes the target and evidence policy in a versioned constitution, retrieves hash-bound evidence during GenLayer consensus, and applies deterministic gates after the model assessment. Missing evidence, hash mismatch, insufficient provenance or an unavailable technical anchor blocks intervention.
+Autonomous protocols need to react to exploits without giving a model, reporter or multisig unchecked emergency power. ProofHalt freezes the target and evidence policy in a versioned constitution, retrieves source-bound and hash-bound evidence during GenLayer consensus, and applies deterministic gates after the model assessment. A claimant-selected source/snapshot mismatch, missing evidence, hash mismatch, insufficient provenance or an unavailable technical anchor blocks intervention.
 
-The production frontend genuinely calls the Intelligent Contract. It supports protocol registration and activation, constitution publication, incident opening, evidence submission, validator adjudication, public verdict reads and remediation/recovery calls when the incident state permits them. Each write reports wallet confirmation, submission hash, accepted consensus, finalized receipt, execution result and authoritative readback.
+The production frontend genuinely calls the Intelligent Contract. It supports protocol registration and activation, constitution publication, incident opening, evidence submission, validator adjudication, public verdict reads, remediation adjudication, `confirm_target_state`, and `close_incident`. Each write reports wallet confirmation, submission hash, accepted consensus, finalized receipt, execution result and authoritative readback. The last two calls are visibly marked as Guardian-dependent and fail closed on the authorization-only Studio deployment.
 
 ## Reviewer links
 
@@ -22,6 +22,7 @@ The production frontend genuinely calls the Intelligent Contract. It supports pr
 - Deploy transaction: https://explorer-studio.genlayer.com/tx/0xea7579b31f5461adccfc83065a166097b88b2e002b88f032d5c3feb2c42dc68c
 - Public record: [`STUDIONET_PUBLIC_RECORD.md`](STUDIONET_PUBLIC_RECORD.md)
 - Launch copy: [`LAUNCH_POST.md`](LAUNCH_POST.md)
+- Latest steward response: [`STEWARD_RESPONSE_V1_2.md`](STEWARD_RESPONSE_V1_2.md)
 
 ## Exact reviewer path
 

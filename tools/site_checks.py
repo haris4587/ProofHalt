@@ -37,6 +37,9 @@ ck('incident adjudication action','data-action="adjudicate_incident"' in h and '
 ck('target patch action','data-action="apply_target_patch"' in h and 'apply_one_way_patch' in j)
 ck('remediation submission action','data-action="submit_remediation"' in h and 'submit_remediation:' in j)
 ck('remediation adjudication action','data-action="adjudicate_remediation"' in h and 'adjudicate_remediation:' in j)
+ck('target-state confirmation action','data-action="confirm_target_state"' in h and 'confirm_target_state:' in j)
+ck('incident closure action','data-action="close_incident"' in h and 'close_incident:' in j)
+ck('source/snapshot mismatch blocked in UI','assertSourceSnapshotBinding' in j and 'Source/snapshot mismatch' in j)
 ck('incident and verdict readback',"'get_incident'" in j and "'get_latest_verdict'" in j)
 ck('immutable evidence hashing','crypto.subtle.digest' in j and 'canonicalize' in j)
 ck('no automatic write on page load','submitAndFinalize(' in j and j.rstrip().endswith('refreshPublicRecord();'))
@@ -48,5 +51,5 @@ ck('public end-to-end record UI','PUBLIC END-TO-END RECORD' in h and 'refreshPub
 ck('responsive CSS','@media' in c)
 ck('restricted CSP',"script-src 'self'" in hd and 'https://studio.genlayer.com' in hd)
 ck('Netlify production build','command = "npm run build"' in n and 'publish = "site"' in n)
-assert len(checks)==41
-print('SUMMARY 41/41 PASS')
+assert len(checks)==44
+print('SUMMARY 44/44 PASS')

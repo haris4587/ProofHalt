@@ -10,7 +10,7 @@ ProofHalt is an evidence-bound emergency governor for autonomous protocols. GenL
 
 - **No reporter-selected source policy.** Protocol evidence rules are frozen in a versioned constitution.
 - **Independent validator retrieval.** Evidence is fetched inside GenLayer nondeterministic execution and validators independently reassess it.
-- **Hash-bound evidence.** Changed page contents cannot silently replace the submitted evidence artifact.
+- **Source-bound, hash-bound evidence.** Adjudicated bytes must come from the constitution-approved URL itself or a contract-verified GitHub raw artifact at the same exact commit/path; claimant-selected mirrors are rejected.
 - **Source-independence checks.** Mirrors of one origin cannot manufacture quorum.
 - **Fail-closed recovery.** RESTORE needs a later remediation decision, independent remediation evidence and target-side patch confirmation.
 - **Minimal EVM authority.** The Guardian can only pause/restore the bound target for a bound incident revision; it exposes no arbitrary-call surface.
@@ -32,16 +32,16 @@ flowchart LR
 | `contracts/proofhalt.py` | Constitution registry, evidence intake, consensus adjudication, append-only revisions, HALT/RESTORE authorization |
 | `contracts/ProofHaltGuardian.sol` | Minimal incident/revision-scoped enforcement bridge |
 | `contracts/DemoVault.sol` | Testnet-only protected target with a bounded demo exploit and one-way patch |
-| `site/` | Wallet-enabled reviewer console for live reads and complete Studionet write lifecycles |
+| `site/` | Wallet-enabled reviewer console for live reads and every contract lifecycle action, including target-state confirmation and incident closure |
 
 ## Verification
 
 The recovered release bundle is reproducible from this repository:
 
-- Python/state-machine/model suites: **61/61 PASS**
+- Python/state-machine/model suites: **64/64 PASS**
 - Stage-9 static cross-layer audit snapshot: **36/36 PASS**
-- Additional repository security invariants: **60/60 PASS**
-- Static website release checks: **41/41 PASS**
+- Additional repository security invariants: **62/62 PASS**
+- Static website release checks: **44/44 PASS**
 - Solidity compiler gate: configured for exact `solc 0.8.36` and run in GitHub Actions
 
 The browser SDK is pinned to `genlayer-js` 1.1.8 and bundled locally during the build. The live constitution and public incident reads require no wallet. MetaMask requests account access and a switch/add to Studionet; writes occur only after the user clicks a named action and confirms the zero-value contract call in MetaMask. ProofHalt requests no token approval, arbitrary signature or Snap installation.
@@ -87,6 +87,7 @@ results/     preserved Stage-9 audit/test evidence
 ```
 
 Start with `docs/ARCHITECTURE.md`, `docs/SECURITY.md`, and `docs/DEPLOYMENT.md`.
+The latest steward-request mapping and focused regression evidence are in [`docs/STEWARD_RESPONSE_V1_2.md`](docs/STEWARD_RESPONSE_V1_2.md).
 
 > **Testnet-only warning:** `DemoVault.sol` deliberately contains a bounded exploit path so reviewers can see the halt/remediate/restore lifecycle. Never deploy it with valuable assets.
 

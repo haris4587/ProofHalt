@@ -20,11 +20,11 @@ A HALT and a RESTORE each require at least **two independent evidence-origin gro
 
 For every evidence record:
 
-- `source_url` = the real originating explorer/monitor/research URL.
-- `snapshot_uri` = a stable immutable URL containing the exact bytes adjudicated.
-- `content_hash` = SHA-256 of the exact bytes returned by `snapshot_uri`.
+- `source_url` = the constitution-approved explorer/monitor/research artifact URL.
+- `snapshot_uri` = exactly `source_url`, or a `raw.githubusercontent.com` URL naming the same repository, file path and exact 40-hex commit as an approved GitHub blob URL.
+- `content_hash` = SHA-256 of the exact bytes returned by that contract-bound artifact.
 
-Do not use a dynamic explorer HTML page as the hash-bound snapshot. Preserve a stable JSON/text artifact that records the explorer transaction and facts, then publish those exact bytes at an immutable URL. `generate_evidence_snapshot.py` creates the canonical bytes and hash, but it does **not** make the source independent.
+Do not pair an approved source page with a separately hosted claimant snapshot; the contract rejects that mismatch. Prefer a source-native stable JSON/text artifact at the approved origin. For GitHub, pin the blob and raw URLs to the same commit. `generate_evidence_snapshot.py` creates canonical bytes and a hash, but the result counts only after the artifact is published at a constitution-approved source and does **not** make the source independent.
 
 ---
 
@@ -35,7 +35,7 @@ Do not deploy until all are true:
 1. `proofhalt.py` passes the official GenVM linter / semantic validation.
 2. `ProofHaltGuardian.sol` and `DemoVault.sol` compile with **solc 0.8.36** with zero severity `error` diagnostics.
 3. `verify_solc_output.py` passes.
-4. All offline suites pass: 24 ProofHalt regression + 21 Guardian/Vault model + 6 cross-layer overlap + 9 exploit/patch lifecycle = **60/60**.
+4. All offline suites pass: 28 ProofHalt regression + 21 Guardian/Vault model + 6 cross-layer overlap + 9 exploit/patch lifecycle = **64/64**.
 5. Source hashes match `SHA256SUMS_STAGE9.txt`.
 
 ### Exact Solidity compile
@@ -150,7 +150,7 @@ Do **not** reuse the old placeholder constitution.
 Run:
 
 ```bash
-python generate_demo_constitution.py \
+python tools/generate_demo_constitution.py \
   --target DEMOVAULT \
   --protocol-id proofhalt-demovault-v1 \
   --out demo_constitution_live.json
@@ -319,10 +319,10 @@ Submit technical evidence:
 ```text
 submit_evidence(
   incident_id=INCIDENT_ID,
-  source_url=<original technical origin URL>,
-  snapshot_uri=<immutable Evidence A URL>,
+  origin_id=<constitution-approved technical origin ID>,
+  source_url=<approved technical artifact URL>,
+  snapshot_uri=<same URL or matching commit-pinned GitHub raw URL>,
   content_hash=<Evidence A SHA-256>,
-  claimed_source_type=1,   # ONCHAIN_TECHNICAL
   phase=0,                 # ORIGINAL
   note="Bounded unauthorized withdrawal transaction and state-change evidence."
 )
@@ -333,10 +333,10 @@ Submit independent corroboration:
 ```text
 submit_evidence(
   incident_id=INCIDENT_ID,
+  origin_id=<constitution-approved independent origin ID>,
   source_url=<independent origin URL>,
-  snapshot_uri=<immutable Evidence B URL>,
+  snapshot_uri=<same URL or matching commit-pinned GitHub raw URL>,
   content_hash=<Evidence B SHA-256>,
-  claimed_source_type=<appropriate source type>,
   phase=1,                 # SUPPORTING
   note="Independent observation corroborating the active unauthorized withdrawal."
 )
@@ -450,7 +450,7 @@ original exploit transaction reference
 
 Independent corroboration must come from a separate origin/observer, not a copy of the first artifact.
 
-Create stable immutable snapshots and SHA-256 hashes exactly as in the incident stage.
+Create source-native, contract-bound artifacts and SHA-256 hashes exactly as in the incident stage.
 
 ---
 
@@ -461,10 +461,10 @@ For each remediation source call:
 ```text
 submit_remediation(
   incident_id=INCIDENT_ID,
-  source_url=<origin URL>,
-  snapshot_uri=<immutable snapshot URL>,
+  origin_id=<constitution-approved origin ID>,
+  source_url=<approved remediation artifact URL>,
+  snapshot_uri=<same URL or matching commit-pinned GitHub raw URL>,
   content_hash=<exact SHA-256>,
-  claimed_source_type=<type>,
   note=<concise remediation evidence note>
 )
 ```

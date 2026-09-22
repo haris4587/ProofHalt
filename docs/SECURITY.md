@@ -6,7 +6,7 @@ ProofHalt is designed so uncertainty blocks autonomous intervention rather than 
 
 ## Evidence integrity
 
-Each evidence record carries a submitted SHA-256 digest. Validators fetch the selected origin/snapshot and compare the fetched bytes to that digest before the content can count toward the deterministic authorization gates. Recovery provenance is calculated from remediation evidence rather than recycling original exploit evidence.
+Each evidence record carries a submitted SHA-256 digest. The contract rejects a source/snapshot pair unless both URLs are identical or they are a GitHub blob/raw pair naming the same repository, exact 40-hex commit and file path. In direct-source mode validators hash and adjudicate one response from the constitution-approved URL, preventing a second-fetch gap. For the GitHub mapping they hash the source-native raw artifact. A merely allowlisted mirror cannot supply the adjudicated bytes. Recovery provenance is calculated from remediation evidence rather than recycling original exploit evidence.
 
 ## Prompt-injection resistance
 

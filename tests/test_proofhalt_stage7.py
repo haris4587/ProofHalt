@@ -1,4 +1,4 @@
-import sys, types, importlib.util, json, hashlib, unittest, copy
+import sys, types, importlib.util, json, hashlib, unittest, copy, subprocess, tempfile
 from pathlib import Path
 
 # ------------------------------------------------------------------
@@ -171,7 +171,7 @@ def constitution(pid='demovault-v1', min_groups=2, anchor=True, target=TARGET):
         {'origin_id':'origin-b','exact_host':'source-b.example','path_prefix':'/reports/','source_type':ph.SOURCE_SECURITY_RESEARCH,'technical_anchor':False},
         {'origin_id':'origin-c','exact_host':'source-c.example','path_prefix':'/reports/','source_type':ph.SOURCE_INDEPENDENT_REPORTING,'technical_anchor':False},
       ],
-      'snapshot_hosts':['snapshots.example'],
+      'snapshot_hosts':['source-a.example','source-b.example','source-c.example','raw.githubusercontent.com'],
     }
     return canonical_hash(obj)
 
@@ -241,7 +241,8 @@ class ProofHaltTests(unittest.TestCase):
         body=f'evidence-{token}'.encode(); h=hashlib.sha256(body).hexdigest()
         origin='origin-a' if token in ('a','periodic') else 'origin-b'
         host='source-a.example' if origin=='origin-a' else 'source-b.example'
-        return self.c.submit_evidence(i,origin,f'https://{host}/reports/{token}',f'https://snapshots.example/{token}.json',h,phase,'')
+        artifact=f'https://{host}/reports/{token}'
+        return self.c.submit_evidence(i,origin,artifact,artifact,h,phase,'')
 
     def test_01_valid_constitution_registration_and_activation(self):
         pid=self.reg(); p=self.c.protocols[pid]
@@ -317,9 +318,9 @@ class ProofHaltTests(unittest.TestCase):
     def test_10_duplicate_evidence_rejected(self):
         self.reg(); i=self.c.open_incident('demovault-v1','Claim')
         body=b'same'; h=hashlib.sha256(body).hexdigest()
-        self.c.submit_evidence(i,'origin-a','https://source-a.example/reports/x','https://snapshots.example/x.json',h,ph.EVIDENCE_ORIGINAL,'')
+        self.c.submit_evidence(i,'origin-a','https://source-a.example/reports/x','https://source-a.example/reports/x',h,ph.EVIDENCE_ORIGINAL,'')
         with self.assertRaisesRegex(UserError,'PH_DUPLICATE_EVIDENCE'):
-            self.c.submit_evidence(i,'origin-b','https://source-b.example/reports/x','https://snapshots.example/y.json',h,ph.EVIDENCE_SUPPORTING,'')
+            self.c.submit_evidence(i,'origin-b','https://source-b.example/reports/x','https://source-b.example/reports/x',h,ph.EVIDENCE_SUPPORTING,'')
 
     def test_11_review_due_state_is_not_dead_end(self):
         self.reg(); i=self.c.open_incident('demovault-v1','Claim'); self.add(i,'a')
@@ -343,8 +344,8 @@ class ProofHaltTests(unittest.TestCase):
     def test_13_two_verified_remediation_sources_authorize_restore(self):
         self.reg(); i=self.c.open_incident('demovault-v1','Claim')
         inc=self.c.incidents[i]; inc.status=ph.u8(ph.INCIDENT_HALTED); inc.revision_count=ph.u32(1)
-        self.c.submit_remediation(i,'origin-a','https://source-a.example/reports/fix1','https://snapshots.example/fix1.json',hashlib.sha256(b'fix1').hexdigest(),'')
-        self.c.submit_remediation(i,'origin-b','https://source-b.example/reports/fix2','https://snapshots.example/fix2.json',hashlib.sha256(b'fix2').hexdigest(),'')
+        self.c.submit_remediation(i,'origin-a','https://source-a.example/reports/fix1','https://source-a.example/reports/fix1',hashlib.sha256(b'fix1').hexdigest(),'')
+        self.c.submit_remediation(i,'origin-b','https://source-b.example/reports/fix2','https://source-b.example/reports/fix2',hashlib.sha256(b'fix2').hexdigest(),'')
         self.c._run_remediation_consensus=lambda *a,**k:remediation_assessment()
         emitted=[]; self.c._emit_restore=lambda p,i,r:emitted.append((i,r))
         self.c.adjudicate_remediation(i)
@@ -473,5 +474,46 @@ class ProofHaltTests(unittest.TestCase):
         self.c.incidents[i].status=ph.u8(ph.INCIDENT_HALT_AUTHORIZED)
         with self.assertRaisesRegex(UserError,'PH_ENFORCEMENT_UNAVAILABLE'):
             self.c.confirm_target_state(i)
+
+    def test_26_source_snapshot_mismatch_is_rejected_at_contract_boundary(self):
+        self.reg(); i=self.c.open_incident('demovault-v1','Claim')
+        digest=hashlib.sha256(b'claimant-selected bytes').hexdigest()
+        with self.assertRaisesRegex(UserError,'PH_SOURCE_SNAPSHOT_MISMATCH'):
+            self.c.submit_evidence(
+                i,
+                'origin-a',
+                'https://source-a.example/reports/approved-origin',
+                'https://source-a.example/reports/different-artifact',
+                digest,
+                ph.EVIDENCE_ORIGINAL,
+                '',
+            )
+        self.assertEqual(int(self.c.incidents[i].evidence_count),0)
+
+    def test_27_github_commit_raw_binding_requires_same_commit_and_path(self):
+        commit='ab'*20
+        source=f'https://github.com/owner/repo/blob/{commit}/reports/a.json'
+        raw=f'https://raw.githubusercontent.com/owner/repo/{commit}/reports/a.json'
+        self.assertEqual(self.c._source_snapshot_binding(source,raw),'GITHUB_COMMIT_RAW')
+        wrong=f'https://raw.githubusercontent.com/owner/repo/{commit}/reports/b.json'
+        with self.assertRaisesRegex(UserError,'PH_SOURCE_SNAPSHOT_MISMATCH'):
+            self.c._source_snapshot_binding(source,wrong)
+
+    def test_28_constitution_generator_emits_contract_accepted_v2(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out=Path(tmp)/'constitution.json'
+            subprocess.run([
+                sys.executable,
+                str(_ROOT/'tools/generate_demo_constitution.py'),
+                '--target',TARGET,
+                '--protocol-id','generated-v2',
+                '--out',str(out),
+            ],check=True,capture_output=True,text=True)
+            raw=out.read_text(encoding='utf-8')
+        data=json.loads(raw)
+        self.assertEqual(data['schema'],ph.PROTOCOL_CONSTITUTION_SCHEMA)
+        self.assertEqual(len(data['evidence_sources']),2)
+        digest=hashlib.sha256(raw.encode()).hexdigest()
+        self.c.register_protocol('generated-v2',TARGET,GUARDIAN,'',raw,digest,'')
 
 if __name__=='__main__': unittest.main(verbosity=2)
